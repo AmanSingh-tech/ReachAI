@@ -1,0 +1,18 @@
+daily_limit: 5
+minimum_job_score: 75
+minimum_target_score: 75
+max_message_length: 500
+max_llm_retries: 2
+cooldown_days: 30
+target_roles:
+  - recruiter
+  - technical recruiter
+  - talent acquisition
+  - hiring manager
+  - engineering manager
+  - head of engineering
+  - founder
+channels:
+  email: true
+  linkedin: true
+require_human_approval: true
