@@ -2,353 +2,461 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ReachAI · Job-search outreach you approve</title>
-  <meta name="description" content="ReachAI is a local-first outreach assistant: it finds recruiters and hiring managers at companies hiring for your roles, drafts grounded messages with Claude Code, and sends from Gmail only after you approve each one.">
-  <meta property="og:title" content="ReachAI · Job-search outreach you approve">
-  <meta property="og:description" content="Finds people at companies hiring for your roles, drafts grounded messages, and sends only what you approve.">
-  <meta property="og:image" content="assets/approvals.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+  <title>ReachAI — outreach that waits for your yes</title>
+  <meta name="description" content="ReachAI finds recruiters and hiring managers at companies hiring for your roles, drafts a grounded note from your real profile and a real job posting, and sends only what you approve. Runs on your laptop.">
+  <meta property="og:title" content="ReachAI — outreach that waits for your yes">
+  <meta property="og:description" content="Drafts grounded job-search outreach and sends only the letters you sign off on. Local-first.">
+  <meta property="og:image" content="assets/overview.png">
   <meta property="og:type" content="website">
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F3EFE6">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#12110E">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
   <style>
-    /* Same design system as the app: design-system/reachai (ui-ux-pro-max skill). */
+    /* Art direction: paper, ink and a postage-stamp accent — every message is a letter you sign off on.
+       Motion follows the emil-design-eng / animate skills in .claude/skills. */
     :root {
-      --bg: #F0FDFA; --surface: #FFFFFF; --surface-2: #F4FAF8; --text: #134E4A; --muted: #475569;
-      --border: #CDEDE7; --primary: #0F766E; --on-primary: #FFFFFF; --primary-soft: #CCFBF1;
-      --accent: #C2410C; --on-accent: #FFFFFF; --danger: #B91C1C; --ok: #166534; --ok-soft: #DCFCE7; --ring: #0D9488;
-      --code-bg: #0B1514; --code-text: #D7F5EF;
-      --radius: 14px; --max: 1120px;
-      --font: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
-      --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+      --paper: #F3EFE6; --paper-deep: #E9E3D6; --card: #FBF9F4;
+      --ink: #191813; --ink-soft: #5C574C; --rule: rgb(25 24 19 / .14); --rule-strong: rgb(25 24 19 / .28);
+      --stamp: #B8321C; --stamp-tint: rgb(184 50 28 / .12); --sent: #2E6A3A; --sent-tint: rgb(46 106 58 / .13);
+      --shadow: 0 1px 1px rgb(25 24 19 / .04), 0 2px 4px rgb(25 24 19 / .04), 0 18px 40px -16px rgb(25 24 19 / .22);
+      --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+      --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+      --serif: "Instrument Serif", "Iowan Old Style", Georgia, serif;
+      --sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      --mono: "Geist Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+      --max: 1180px;
       color-scheme: light;
     }
     @media (prefers-color-scheme: dark) {
       :root:not([data-theme="light"]) {
-        --bg: #0B1514; --surface: #11201E; --surface-2: #162A27; --text: #E6F4F1; --muted: #A3B8B3;
-        --border: #24413C; --primary: #2DD4BF; --on-primary: #042F2E; --primary-soft: #123A35;
-        --accent: #FB923C; --on-accent: #1C0A00; --danger: #F87171; --ok: #86EFAC; --ok-soft: #12321F; --ring: #5EEAD4;
-        --code-bg: #071010; color-scheme: dark;
+        --paper: #12110E; --paper-deep: #1A1915; --card: #1D1C18;
+        --ink: #EEEAE0; --ink-soft: #A8A295; --rule: rgb(238 234 224 / .13); --rule-strong: rgb(238 234 224 / .26);
+        --stamp: #F2735A; --stamp-tint: rgb(242 115 90 / .16); --sent: #86C994; --sent-tint: rgb(134 201 148 / .14);
+        --shadow: 0 1px 1px rgb(0 0 0 / .3), 0 18px 40px -16px rgb(0 0 0 / .6);
+        color-scheme: dark;
       }
-    }
-    :root[data-theme="dark"] {
-      --bg: #0B1514; --surface: #11201E; --surface-2: #162A27; --text: #E6F4F1; --muted: #A3B8B3;
-      --border: #24413C; --primary: #2DD4BF; --on-primary: #042F2E; --primary-soft: #123A35;
-      --accent: #FB923C; --on-accent: #1C0A00; --danger: #F87171; --ok: #86EFAC; --ok-soft: #12321F; --ring: #5EEAD4;
-      --code-bg: #071010; color-scheme: dark;
     }
 
     * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; scroll-padding-top: 80px; }
-    body { margin: 0; background: var(--bg); color: var(--text); font: 400 16px/1.6 var(--font); -webkit-font-smoothing: antialiased; }
-    a { color: var(--primary); }
-    h1, h2, h3 { margin: 0; line-height: 1.15; letter-spacing: -0.02em; }
+    html { -webkit-tap-highlight-color: transparent; -webkit-text-size-adjust: 100%; scroll-padding-top: 88px; }
+    body { margin: 0; background: var(--paper); color: var(--ink); font: 400 16px/1.6 var(--sans); -webkit-font-smoothing: antialiased; }
+    h1, h2, h3 { margin: 0; font-weight: 400; }
     p { margin: 0; }
-    img { max-width: 100%; display: block; }
-    :focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; border-radius: 6px; }
-    svg.i { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
-    .wrap { width: min(var(--max), 100% - 32px); margin-inline: auto; }
-    .skip { position: absolute; left: -999px; top: 8px; background: var(--primary); color: var(--on-primary); padding: 8px 14px; border-radius: 8px; z-index: 20; }
+    a { color: inherit; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+    img { display: block; max-width: 100%; height: auto; }
+    button, a, summary { touch-action: manipulation; }
+    button { -webkit-user-select: none; user-select: none; }
+    :focus-visible { outline: 2px solid var(--stamp); outline-offset: 3px; border-radius: 4px; }
+    .wrap { width: min(var(--max), 100% - 40px); margin-inline: auto; }
+    .mono { font-family: var(--mono); font-size: 12.5px; letter-spacing: .02em; }
+    .serif { font-family: var(--serif); }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    .skip { position: absolute; left: -999px; top: 10px; z-index: 30; background: var(--ink); color: var(--paper); padding: 8px 14px; border-radius: 999px; }
     .skip:focus { left: 16px; }
 
+    /* Buttons — press feedback per the animate skill */
+    .btn { display: inline-flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 22px; border-radius: 999px; border: 1px solid transparent; background: var(--ink); color: var(--paper); font: 500 15px var(--sans); text-decoration: none; cursor: pointer; transition: transform 160ms var(--ease-out), background-color 200ms ease, color 200ms ease; }
+    .btn:active { transform: scale(0.97); }
+    .btn.line { background: transparent; color: var(--ink); border-color: var(--rule-strong); }
+    .btn.stamp { background: var(--stamp); color: var(--paper); }
+    .btn .arrow { transition: transform 200ms var(--ease-out); }
+    @media (hover: hover) and (pointer: fine) {
+      .btn.line:hover { background: var(--paper-deep); }
+      .btn:hover .arrow { transform: translateX(3px); }
+      .nav a:not(.btn):not(.word):hover { color: var(--ink); }
+    }
+
     /* Nav */
-    .nav { position: sticky; top: 0; z-index: 10; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--border); }
-    .nav .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 64px; }
-    .logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 18px; color: var(--text); text-decoration: none; }
-    .logo img { width: 32px; height: 32px; }
-    .nav ul { display: flex; gap: 4px; list-style: none; margin: 0; padding: 0; align-items: center; }
-    .nav li a:not(.btn) { display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; color: var(--muted); text-decoration: none; font-weight: 500; font-size: 15px; border-radius: 8px; }
-    .nav li a:not(.btn):hover { color: var(--text); background: var(--surface-2); }
-
-    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 0 20px; border-radius: 12px; border: 1px solid transparent; font: 700 15px var(--font); text-decoration: none; cursor: pointer; background: var(--primary); color: var(--on-primary); transition: opacity .15s ease, background-color .15s ease; }
-    .btn:hover { opacity: .9; }
-    .btn.accent { background: var(--accent); color: var(--on-accent); }
-    .btn.ghost { background: var(--surface); color: var(--text); border-color: var(--border); }
-    .btn.ghost:hover { background: var(--surface-2); opacity: 1; }
-    .btn.small { min-height: 40px; padding: 0 14px; font-size: 14px; }
-    .btn[disabled] { background: var(--surface-2); color: var(--muted); border-color: var(--border); cursor: progress; }
-
-    /* Sections */
-    section { padding: 88px 0; }
-    .eyebrow { display: inline-block; font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--primary); margin-bottom: 12px; }
-    .section-head { max-width: 680px; margin-bottom: 40px; }
-    .section-head h2 { font-size: clamp(28px, 4vw, 40px); font-weight: 800; }
-    .section-head p { margin-top: 12px; color: var(--muted); font-size: 18px; }
-    .alt { background: var(--surface); border-block: 1px solid var(--border); }
+    .nav { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--paper) 84%, transparent); backdrop-filter: saturate(1.4) blur(10px); -webkit-backdrop-filter: saturate(1.4) blur(10px); border-bottom: 1px solid var(--rule); }
+    .nav .wrap { display: flex; align-items: center; justify-content: space-between; min-height: 64px; gap: 16px; }
+    .word { font-family: var(--serif); font-size: 26px; text-decoration: none; letter-spacing: -.01em; display: inline-flex; align-items: baseline; gap: 8px; }
+    .word sup { font-family: var(--mono); font-size: 10px; color: var(--stamp); letter-spacing: .06em; }
+    .nav ul { display: flex; align-items: center; gap: 4px; list-style: none; margin: 0; padding: 0; }
+    .nav a:not(.btn):not(.word) { display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; color: var(--ink-soft); text-decoration: none; font-size: 14.5px; transition: color 200ms ease; }
+    .nav .btn { min-height: 40px; padding: 0 16px; font-size: 14px; }
 
     /* Hero */
-    .hero { padding: 72px 0 56px; }
-    .hero h1 { font-size: clamp(36px, 6vw, 60px); font-weight: 800; max-width: 19ch; }
-    .hero h1 em { font-style: normal; color: var(--primary); }
-    .hero .lead { margin-top: 20px; font-size: clamp(17px, 2vw, 20px); color: var(--muted); max-width: 60ch; }
-    .hero .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
-    .badges { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 28px; color: var(--muted); font-size: 14px; font-weight: 500; padding: 0; list-style: none; }
-    .badges li { display: inline-flex; align-items: center; gap: 6px; }
-    .badges svg.i { width: 18px; height: 18px; color: var(--ok); }
-    .shot { margin-top: 56px; border: 1px solid var(--border); border-radius: 18px; overflow: hidden; background: var(--surface); }
-    .shot-bar { display: flex; gap: 6px; padding: 12px 14px; border-bottom: 1px solid var(--border); background: var(--surface-2); }
-    .shot-bar span { width: 10px; height: 10px; border-radius: 50%; background: var(--border); }
-    .shot img { width: 100%; height: auto; aspect-ratio: 1280 / 673; }
+    .hero { padding: 72px 0 96px; }
+    .hero-grid { display: grid; grid-template-columns: minmax(0, 1.02fr) minmax(0, .98fr); gap: 56px; align-items: center; }
+    .kicker { display: inline-flex; gap: 10px; align-items: center; color: var(--ink-soft); }
+    .kicker::before { content: ""; width: 28px; height: 1px; background: var(--rule-strong); }
+    .hero h1 { font-family: var(--serif); font-size: clamp(52px, 7.6vw, 104px); line-height: .94; letter-spacing: -.025em; margin-top: 22px; }
+    .hero h1 em { color: var(--stamp); }
+    .hero .lead { margin-top: 26px; font-size: 19px; line-height: 1.55; color: var(--ink-soft); max-width: 34em; }
+    .hero .lead b { color: var(--ink); font-weight: 500; }
+    .hero .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 34px; }
+    .stack { margin-top: 36px; display: flex; flex-wrap: wrap; gap: 6px 18px; color: var(--ink-soft); padding: 0; list-style: none; }
+    .stack li::before { content: "·"; margin-right: 18px; color: var(--rule-strong); }
+    .stack li:first-child::before { content: none; }
 
-    /* Steps */
-    .steps { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; list-style: none; padding: 0; margin: 0; counter-reset: step; }
-    .step { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px 20px; counter-increment: step; }
-    .step::before { content: counter(step); display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; background: var(--primary); color: var(--on-primary); font-weight: 800; margin-bottom: 16px; }
-    .step h3 { font-size: 17px; font-weight: 700; }
-    .step p { margin-top: 8px; color: var(--muted); font-size: 15px; }
+    /* Entrance: rare, first-visit -> stagger, 50ms, opacity + 8px */
+    .in { animation: rise 520ms var(--ease-out) both; }
+    .in:nth-child(2) { animation-delay: 50ms; } .in:nth-child(3) { animation-delay: 100ms; }
+    .in:nth-child(4) { animation-delay: 150ms; } .in:nth-child(5) { animation-delay: 200ms; }
+    @keyframes rise { from { opacity: 0; transform: translateY(8px); } }
 
-    /* Features */
-    .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
-    .feature { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; }
-    .feature .ico { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; background: var(--primary-soft); color: var(--primary); margin-bottom: 16px; }
-    .feature h3 { font-size: 17px; font-weight: 700; }
-    .feature p { margin-top: 8px; color: var(--muted); font-size: 15px; }
+    /* The letter demo */
+    .desk { position: relative; }
+    .letter { position: relative; background: var(--card); border-radius: 6px; box-shadow: var(--shadow); padding: 30px 32px 26px; transform: rotate(-.6deg); animation: rise 620ms var(--ease-out) 160ms both; }
+    .letter::before { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: repeating-linear-gradient(-45deg, transparent 0 14px, var(--stamp-tint) 14px 15px) top / 100% 6px no-repeat; }
+    .postmark { position: absolute; top: 22px; right: 24px; width: 74px; height: 74px; border: 1.5px dashed var(--rule-strong); border-radius: 50%; display: grid; place-items: center; text-align: center; color: var(--ink-soft); font-family: var(--mono); font-size: 9.5px; line-height: 1.35; letter-spacing: .08em; transform: rotate(10deg); }
+    .head { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 6px 10px; padding-right: 86px; font-size: 14px; }
+    .head dt { color: var(--ink-soft); font-family: var(--mono); font-size: 11.5px; letter-spacing: .08em; padding-top: 2px; }
+    .head dd { margin: 0; overflow-wrap: anywhere; }
+    .body { margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--rule); font-size: 15.5px; line-height: 1.65; white-space: pre-line; transition: opacity 220ms ease, filter 220ms ease; }
+    .body.swap { opacity: 0; filter: blur(2px); }
+    mark { color: inherit; border-radius: 3px; padding: 0 2px; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+    mark.post { background: var(--stamp-tint); box-shadow: inset 0 -1.5px 0 var(--stamp); }
+    mark.you { background: var(--sent-tint); box-shadow: inset 0 -1.5px 0 var(--sent); }
+    .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 16px; color: var(--ink-soft); }
+    .legend span { display: inline-flex; align-items: center; gap: 7px; }
+    .legend i { width: 14px; height: 9px; border-radius: 2px; display: inline-block; }
+    .legend .p { background: var(--stamp-tint); box-shadow: inset 0 -1.5px 0 var(--stamp); }
+    .legend .y { background: var(--sent-tint); box-shadow: inset 0 -1.5px 0 var(--sent); }
+    .decide { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 22px; }
+    .decide .btn { min-height: 44px; padding: 0 18px; font-size: 14.5px; }
+    .decide .status { color: var(--ink-soft); }
+    .decide [hidden] { display: none; }
 
-    /* Use it */
-    .use { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 32px; align-items: start; }
-    .need { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
-    .need li { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 14px; padding: 16px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg); }
-    .need .ico { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; background: var(--primary-soft); color: var(--primary); }
-    .need strong { display: block; }
-    .need span { color: var(--muted); font-size: 15px; }
-    .code { background: var(--code-bg); color: var(--code-text); border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); }
-    .code-head { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px 10px 18px; font-size: 13px; color: #9FC9C1; border-bottom: 1px solid #1E3532; }
-    .code-head button { min-height: 36px; padding: 0 12px; border-radius: 8px; border: 1px solid #2A4743; background: transparent; color: #D7F5EF; font: 600 13px var(--font); cursor: pointer; }
-    .code-head button:hover { background: #142725; }
-    pre { margin: 0; padding: 18px; overflow-x: auto; font: 14px/1.7 var(--mono); }
-    pre .c { color: #7FA8A0; }
-    .note { margin-top: 16px; font-size: 15px; color: var(--muted); }
+    /* The stamp: lands from slightly larger (never from 0), 240ms ease-out; transitions so it can be interrupted */
+    .rubber { position: absolute; right: 30px; bottom: 82px; padding: 8px 14px 7px; border: 3px solid currentColor; border-radius: 8px; font-family: var(--mono); font-weight: 500; font-size: 15px; letter-spacing: .14em; line-height: 1.25; text-align: center; color: var(--sent); background: color-mix(in srgb, var(--card) 70%, transparent); pointer-events: none;
+      opacity: 0; transform: rotate(-9deg) scale(1.18); transition: opacity 240ms var(--ease-out), transform 240ms var(--ease-out); }
+    .rubber small { display: block; font-size: 10.5px; letter-spacing: .1em; opacity: .85; }
+    .rubber.no { color: var(--stamp); }
+    .letter[data-state="approved"] .rubber.yes, .letter[data-state="rejected"] .rubber.no { opacity: 1; transform: rotate(-9deg) scale(1); }
+    .desk-note { margin-top: 18px; color: var(--ink-soft); text-align: right; }
+
+    /* Section scaffolding */
+    section { padding: 112px 0; }
+    .sec-head { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 24px; align-items: baseline; margin-bottom: 56px; }
+    .sec-head .mono { color: var(--ink-soft); padding-top: 14px; border-top: 1px solid var(--rule-strong); }
+    .sec-head h2 { font-family: var(--serif); font-size: clamp(38px, 5vw, 64px); line-height: 1; letter-spacing: -.02em; max-width: 14em; }
+    .sec-head h2 em { color: var(--stamp); }
+    .sec-head p { margin-top: 18px; color: var(--ink-soft); font-size: 18px; max-width: 36em; }
+
+    /* "Not a…" band */
+    .nots { border-block: 1px solid var(--rule); padding: 44px 0; }
+    .nots p { font-family: var(--serif); font-size: clamp(26px, 3.6vw, 44px); line-height: 1.2; letter-spacing: -.01em; }
+    .nots s { color: var(--ink-soft); text-decoration-color: var(--stamp); text-decoration-thickness: 2px; }
+
+    /* Steps as a ledger */
+    .ledger { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--rule-strong); }
+    .ledger li { display: grid; grid-template-columns: 200px minmax(0, 1fr) 190px; gap: 24px; padding: 28px 0; border-bottom: 1px solid var(--rule); align-items: baseline; }
+    .ledger .n { font-family: var(--serif); font-size: 56px; line-height: .9; color: var(--stamp); }
+    .ledger h3 { font-family: var(--serif); font-size: 30px; line-height: 1.1; }
+    .ledger p { margin-top: 8px; color: var(--ink-soft); max-width: 40em; }
+    .ledger .tool { justify-self: end; color: var(--ink-soft); border: 1px solid var(--rule-strong); border-radius: 999px; padding: 4px 12px; white-space: nowrap; }
+
+    /* Scroll reveal: marketing only, fires once */
+    .reveal { opacity: 0; transform: translateY(10px); transition: opacity 500ms var(--ease-out), transform 500ms var(--ease-out); }
+    .reveal.seen { opacity: 1; transform: none; }
+
+    /* Rules: inverted ink band */
+    .rules { background: var(--ink); color: var(--paper); }
+    .rules .sec-head .mono { color: color-mix(in srgb, var(--paper) 70%, transparent); border-color: color-mix(in srgb, var(--paper) 35%, transparent); }
+    .rules .sec-head h2 em { color: #F2735A; }
+    .rules ol { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 56px; counter-reset: rule; }
+    .rules li { counter-increment: rule; padding: 26px 0 28px; border-top: 1px solid color-mix(in srgb, var(--paper) 20%, transparent); display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 16px; }
+    .rules li::before { content: "§" counter(rule); font-family: var(--mono); font-size: 13px; color: #F2735A; padding-top: 6px; }
+    .rules h3 { font-family: var(--serif); font-size: 27px; line-height: 1.15; }
+    .rules p { margin-top: 8px; color: color-mix(in srgb, var(--paper) 72%, transparent); }
+
+    /* Desk screenshot */
+    .shot { margin: 0; border-radius: 10px; overflow: hidden; box-shadow: var(--shadow); background: var(--card); }
+    .shot figcaption { display: flex; justify-content: space-between; gap: 12px; padding: 12px 16px; border-top: 1px solid var(--rule); color: var(--ink-soft); }
+
+    /* Setup */
+    .setup { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 56px; align-items: start; }
+    .needs { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--rule-strong); counter-reset: need; }
+    .needs li { counter-increment: need; display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 12px; padding: 18px 0; border-bottom: 1px solid var(--rule); }
+    .needs li::before { content: counter(need, decimal-leading-zero); font-family: var(--mono); font-size: 12.5px; color: var(--stamp); padding-top: 3px; }
+    .needs strong { font-weight: 500; }
+    .needs span { display: block; color: var(--ink-soft); font-size: 15px; }
+    .term { background: #121110; color: #E9E4D8; border-radius: 10px; box-shadow: var(--shadow); overflow: hidden; }
+    .term-bar { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px 10px 18px; border-bottom: 1px solid #2A2823; color: #A8A295; }
+    .term-bar button { min-height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid #3A3731; background: transparent; color: #E9E4D8; font: 500 13px var(--sans); cursor: pointer; transition: transform 160ms var(--ease-out), background-color 200ms ease; }
+    .term-bar button:active { transform: scale(0.97); }
+    @media (hover: hover) and (pointer: fine) { .term-bar button:hover { background: #1F1D19; } }
+    .term pre { margin: 0; padding: 20px 20px 22px; overflow-x: auto; font: 13.5px/1.75 var(--mono); }
+    .term .c { color: #8C877C; }
+    .term .p { color: #F2735A; user-select: none; }
+    .after { margin-top: 18px; color: var(--ink-soft); font-size: 15px; }
 
     /* FAQ */
-    .faq { display: grid; gap: 12px; max-width: 820px; }
-    details { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 0 20px; }
-    summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 16px; min-height: 60px; font-weight: 700; }
+    .faq { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 24px; }
+    .qa { border-top: 1px solid var(--rule-strong); }
+    details { border-bottom: 1px solid var(--rule); }
+    summary { list-style: none; cursor: pointer; display: grid; grid-template-columns: minmax(0, 1fr) 28px; align-items: center; gap: 16px; min-height: 72px; font-family: var(--serif); font-size: 25px; line-height: 1.2; }
     summary::-webkit-details-marker { display: none; }
-    summary::after { content: "+"; font-size: 22px; color: var(--primary); font-weight: 500; }
-    details[open] summary::after { content: "–"; }
-    details p { padding-bottom: 20px; color: var(--muted); }
+    summary .x { width: 28px; height: 28px; position: relative; transition: transform 200ms var(--ease-out); }
+    summary .x::before, summary .x::after { content: ""; position: absolute; left: 6px; right: 6px; top: 13px; height: 1.5px; background: var(--ink); }
+    summary .x::after { transform: rotate(90deg); }
+    details[open] summary .x { transform: rotate(45deg); }
+    details p { padding: 0 44px 26px 0; color: var(--ink-soft); max-width: 46em; }
 
-    /* Contact */
-    .contact { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 40px; align-items: start; }
-    form { background: var(--bg); border: 1px solid var(--border); border-radius: 18px; padding: 28px; display: grid; gap: 18px; }
-    .field { display: grid; gap: 6px; }
-    label { font-weight: 600; font-size: 15px; }
-    label .opt { color: var(--muted); font-weight: 500; }
-    input, select, textarea { width: 100%; min-height: 48px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); color: var(--text); font: inherit; }
-    textarea { min-height: 140px; resize: vertical; }
-    input[aria-invalid="true"], textarea[aria-invalid="true"] { border-color: var(--danger); }
-    .err { color: var(--danger); font-size: 14px; min-height: 0; }
+    /* Contact: a letter to the maintainer */
+    .contact-grid { display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); gap: 56px; align-items: start; }
+    .write { position: relative; background: var(--card); border-radius: 6px; box-shadow: var(--shadow); padding: 34px 34px 30px; }
+    .write .to { display: flex; justify-content: space-between; gap: 12px; color: var(--ink-soft); padding-bottom: 16px; border-bottom: 1px solid var(--rule); margin-bottom: 22px; }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .field { display: grid; gap: 6px; margin-bottom: 18px; }
+    .field label { font-family: var(--mono); font-size: 11.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-soft); }
+    .field input, .field select, .field textarea { width: 100%; min-height: 48px; padding: 12px 14px; border: 1px solid var(--rule-strong); border-radius: 6px; background: var(--paper); color: var(--ink); font: 400 16px var(--sans); transition: border-color 200ms ease, box-shadow 200ms ease; }
+    .field textarea { min-height: 150px; resize: vertical; line-height: 1.6; }
+    .field input:focus-visible, .field select:focus-visible, .field textarea:focus-visible { outline: none; border-color: var(--ink); box-shadow: 0 0 0 3px var(--stamp-tint); }
+    .field [aria-invalid="true"] { border-color: var(--stamp); }
+    .err { color: var(--stamp); font-size: 14px; }
     .err:empty { display: none; }
     .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
-    .form-status { border-radius: 12px; padding: 14px 16px; font-weight: 500; }
-    .form-status.ok { background: var(--ok-soft); color: var(--ok); }
-    .form-status.bad { background: color-mix(in srgb, var(--danger) 12%, transparent); color: var(--danger); }
-    .privacy { font-size: 13px; color: var(--muted); }
+    .send-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; margin-top: 6px; }
+    .send-row .mono { color: var(--ink-soft); }
+    .notice { border-radius: 6px; padding: 14px 16px; margin-bottom: 18px; }
+    .notice.bad { background: var(--stamp-tint); color: var(--ink); }
+    .notice a { font-weight: 500; }
+    .write .rubber { right: 34px; bottom: 96px; }
+    .write[data-state="sent"] .rubber.yes { opacity: 1; transform: rotate(-9deg) scale(1); }
+    .write .btn[disabled] { opacity: .6; cursor: progress; }
 
-    footer { padding: 40px 0; border-top: 1px solid var(--border); color: var(--muted); font-size: 14px; }
-    footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    footer { padding: 72px 0 48px; border-top: 1px solid var(--rule); }
+    footer .big { font-family: var(--serif); font-size: clamp(64px, 14vw, 200px); line-height: .9; letter-spacing: -.03em; color: var(--paper-deep); user-select: none; }
+    footer .line { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-top: 28px; color: var(--ink-soft); }
+    footer a { color: var(--ink); }
     [hidden] { display: none !important; }
 
-    @media (max-width: 1000px) {
-      .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .use, .contact { grid-template-columns: minmax(0, 1fr); }
+    @media (max-width: 980px) {
+      .hero-grid, .setup, .contact-grid { grid-template-columns: minmax(0, 1fr); gap: 48px; }
+      .sec-head, .faq { grid-template-columns: minmax(0, 1fr); gap: 0; }
+      .sec-head .mono { margin-bottom: 18px; }
+      .ledger li { grid-template-columns: 72px minmax(0, 1fr); }
+      .ledger .tool { grid-column: 2; justify-self: start; }
+      .rules ol { grid-template-columns: minmax(0, 1fr); }
     }
-    @media (max-width: 680px) {
-      section { padding: 64px 0; }
+    @media (max-width: 640px) {
+      section { padding: 80px 0; }
+      .hero { padding: 48px 0 72px; }
       .nav .links { display: none; }
-      .steps, .grid-3 { grid-template-columns: minmax(0, 1fr); }
-      form { padding: 20px; }
+      .letter { padding: 24px 20px 22px; transform: none; }
+      .postmark { width: 60px; height: 60px; font-size: 8.5px; top: 16px; right: 14px; }
+      .head { padding-right: 64px; grid-template-columns: 52px minmax(0, 1fr); }
+      .rubber { right: 18px; bottom: 76px; }
+      .ledger .n { font-size: 42px; }
+      .write { padding: 24px 20px; }
+      .row2 { grid-template-columns: minmax(0, 1fr); gap: 0; }
+      details p { padding-right: 0; }
     }
+    /* Reduced motion: fewer and gentler, not zero — keep fades, drop movement */
     @media (prefers-reduced-motion: reduce) {
-      html { scroll-behavior: auto; }
-      *, *::before, *::after { transition: none !important; animation: none !important; }
+      .in, .letter { animation-name: fade; }
+      @keyframes fade { from { opacity: 0; } }
+      .reveal { transform: none; transition: opacity 300ms ease; }
+      .rubber, .letter[data-state] .rubber, .write[data-state] .rubber { transition: opacity 200ms ease; transform: rotate(-9deg); }
+      .btn, .btn .arrow, summary .x, .term-bar button { transition-property: background-color, color; }
+      .btn:active, .term-bar button:active { transform: none; }
     }
   </style>
 </head>
 <body>
-  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
-    <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
-    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></symbol>
-    <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/></symbol>
-    <symbol id="i-mail" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></symbol>
-    <symbol id="i-gauge" viewBox="0 0 24 24"><path d="M12 14 16 10"/><path d="M3.3 19a10 10 0 1 1 17.4 0"/></symbol>
-    <symbol id="i-laptop" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M2 20h20"/></symbol>
-    <symbol id="i-cpu" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="M9 9h6v6H9zM9 1v4M15 1v4M9 19v4M15 19v4M1 9h4M1 15h4M19 9h4M19 15h4"/></symbol>
-    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></symbol>
-    <symbol id="i-key" viewBox="0 0 24 24"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6M15.5 7.5l3 3L22 7l-3-3"/></symbol>
-    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></symbol>
-    <symbol id="i-github" viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></symbol>
-    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
-  </svg>
-
   <a class="skip" href="#main">Skip to content</a>
 
   <header class="nav">
     <div class="wrap">
-      <a class="logo" href="#top"><img src="assets/favicon.svg" alt="" width="32" height="32">ReachAI</a>
+      <a class="word" href="#top" aria-label="ReachAI home">ReachAI<sup>LOCAL</sup></a>
       <ul>
         <li class="links"><a href="#how">How it works</a></li>
-        <li class="links"><a href="#use">Use it</a></li>
-        <li class="links"><a href="#faq">FAQ</a></li>
-        <li><a class="btn small" href="#contact">Contact</a></li>
+        <li class="links"><a href="#rules">Rules</a></li>
+        <li class="links"><a href="#setup">Set up</a></li>
+        <li class="links"><a href="https://github.com/AmanSingh-tech/ReachAI" rel="noopener">GitHub</a></li>
+        <li><a class="btn" href="#contact">Write to us</a></li>
       </ul>
     </div>
   </header>
 
   <main id="main">
     <section class="hero" id="top">
-      <div class="wrap">
-        <span class="eyebrow">Open-source · runs on your laptop</span>
-        <h1>Job-search outreach that <em>waits for your yes</em>.</h1>
-        <p class="lead">ReachAI finds recruiters and hiring managers at companies that are hiring for your roles, drafts a short message grounded in your real experience and a real job posting, and emails it to you. It sends only the messages you approve.</p>
-        <div class="actions">
-          <a class="btn accent" href="#use">Set it up <svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></a>
-          <a class="btn ghost" href="https://github.com/AmanSingh-tech/ReachAI" rel="noopener"><svg class="i" aria-hidden="true"><use href="#i-github"/></svg>View on GitHub</a>
+      <div class="wrap hero-grid">
+        <div>
+          <div class="kicker mono in">A job-search assistant that runs on your laptop</div>
+          <h1 class="in">Outreach that waits for your <em>yes.</em></h1>
+          <p class="lead in">ReachAI finds the recruiters and hiring managers at companies hiring for your roles, writes each of them a short note using <b>only your real experience and a real job posting</b>, and puts it on your desk. Nothing leaves until you sign off.</p>
+          <div class="actions in">
+            <a class="btn" href="#setup">Set it up <span class="arrow" aria-hidden="true">→</span></a>
+            <a class="btn line" href="https://github.com/AmanSingh-tech/ReachAI" rel="noopener">Read the code</a>
+          </div>
+          <ul class="stack mono in" aria-label="Built with">
+            <li>Python</li><li>SQLite</li><li>Apollo</li><li>Gmail</li><li>Claude Code</li>
+          </ul>
         </div>
-        <ul class="badges" aria-label="Highlights">
-          <li><svg class="i" aria-hidden="true"><use href="#i-check"/></svg>Every message approved by you</li>
-          <li><svg class="i" aria-hidden="true"><use href="#i-check"/></svg>No invented facts</li>
-          <li><svg class="i" aria-hidden="true"><use href="#i-check"/></svg>Your data stays local</li>
-        </ul>
-        <figure class="shot" style="margin-inline:0">
-          <div class="shot-bar" aria-hidden="true"><span></span><span></span><span></span></div>
-          <img src="assets/approvals.png" width="1280" height="673" alt="ReachAI approvals screen showing a drafted message to an engineering manager, with LinkedIn and job posting links and Approve or Reject buttons">
-        </figure>
+
+        <div class="desk">
+          <article class="letter" id="letter" data-state="pending" aria-labelledby="letter-title">
+            <h2 class="sr-only" id="letter-title">Example draft awaiting approval</h2>
+            <div class="postmark" aria-hidden="true">DRAFT<br><span id="draft-n">1 / 3</span><br>AWAITING</div>
+            <dl class="head">
+              <dt>TO</dt><dd id="d-to"></dd>
+              <dt>ROLE</dt><dd id="d-role"></dd>
+              <dt>RE</dt><dd id="d-re"></dd>
+            </dl>
+            <div class="body" id="d-body"></div>
+            <div class="legend mono" aria-label="Highlight legend">
+              <span><i class="p" aria-hidden="true"></i>from the job posting</span>
+              <span><i class="y" aria-hidden="true"></i>from your profile</span>
+            </div>
+            <div class="decide">
+              <button class="btn" id="approve" type="button">Approve &amp; send</button>
+              <button class="btn line" id="reject" type="button">Reject</button>
+              <button class="btn line" id="next" type="button" hidden>Next draft <span class="arrow" aria-hidden="true">→</span></button>
+              <span class="status mono" id="d-status" aria-live="polite"></span>
+            </div>
+            <div class="rubber yes" aria-hidden="true">APPROVED<small>SENT · GMAIL</small></div>
+            <div class="rubber no" aria-hidden="true">REJECTED<small>NOT SENT</small></div>
+          </article>
+          <p class="desk-note mono">Try it — this is what lands in your inbox. Sample people, not real ones.</p>
+        </div>
       </div>
     </section>
 
-    <section class="alt" id="how">
+    <div class="nots">
       <div class="wrap">
-        <div class="section-head">
-          <span class="eyebrow">How it works</span>
-          <h2>From "who's hiring?" to a sent message, in five steps</h2>
-          <p>You stay in the loop at the only step that matters: deciding what goes out under your name.</p>
+        <p><s>Not a spam cannon.</s> <s>Not a LinkedIn bot.</s> <s>Not a hosted service.</s> A careful assistant that drafts, then waits.</p>
+      </div>
+    </div>
+
+    <section id="how">
+      <div class="wrap">
+        <div class="sec-head">
+          <div class="mono">01 — How it works</div>
+          <div>
+            <h2>Five steps. You own <em>the fourth.</em></h2>
+            <p>Everything before approval is automated and checked. The decision about what goes out under your name is always yours.</p>
+          </div>
         </div>
-        <ol class="steps">
-          <li class="step"><h3>Find</h3><p>Apollo finds people with the titles you choose at companies with recent postings for your target roles.</p></li>
-          <li class="step"><h3>Qualify</h3><p>Only people with a verified work email whose company has a matching live posting are kept.</p></li>
-          <li class="step"><h3>Draft</h3><p>Claude Code writes a short note using only your profile and that posting, then it's fact-checked.</p></li>
-          <li class="step"><h3>Approve</h3><p>You get one email per person with their LinkedIn, the job, and the exact message. Approve or reject.</p></li>
-          <li class="step"><h3>Send</h3><p>Only that approved message goes out from your Gmail, within your daily limit, and is logged.</p></li>
+        <ol class="ledger">
+          <li class="reveal"><span class="n">i.</span><div><h3>Find</h3><p>Apollo searches for the people you'd actually write to — recruiters, engineering managers, founders — at companies with recent postings for your target roles.</p></div><span class="tool mono">Apollo search</span></li>
+          <li class="reveal"><span class="n">ii.</span><div><h3>Qualify</h3><p>Only people with a verified work email whose company has a live, matching posting are kept. Everyone else is skipped, with a reason.</p></div><span class="tool mono">Rules, not vibes</span></li>
+          <li class="reveal"><span class="n">iii.</span><div><h3>Draft</h3><p>A short note built from your profile and that posting. Claude Code writes it with every tool switched off, then it's checked for the company, the role and your resume link.</p></div><span class="tool mono">Claude Code</span></li>
+          <li class="reveal"><span class="n">iv.</span><div><h3>Approve</h3><p>One email per person: who they are, their LinkedIn, the posting, the exact message. Tap approve, tap reject, or just reply APPROVE.</p></div><span class="tool mono">Your inbox</span></li>
+          <li class="reveal"><span class="n">v.</span><div><h3>Send</h3><p>That single letter goes out from your own Gmail, inside your daily limit, and lands in an audit log you can read any time.</p></div><span class="tool mono">Gmail · SQLite</span></li>
         </ol>
       </div>
     </section>
 
-    <section id="why">
+    <section class="rules" id="rules">
       <div class="wrap">
-        <div class="section-head">
-          <span class="eyebrow">Built to be trusted</span>
-          <h2>Automation that never speaks for you without asking</h2>
+        <div class="sec-head">
+          <div class="mono">02 — The rules</div>
+          <div><h2>Six rules it <em>can't</em> break.</h2></div>
         </div>
-        <div class="grid-3">
-          <article class="feature"><div class="ico"><svg class="i" aria-hidden="true"><use href="#i-shield"/></svg></div><h3>Approval is mandatory</h3><p>Nothing is sent without an explicit approval, and approving one message never approves another.</p></article>
-          <article class="feature"><div class="ico"><svg class="i" aria-hidden="true"><use href="#i-file"/></svg></div><h3>Grounded, not invented</h3><p>Drafts may only use facts from your profile and a stored job posting. Targets are never made up.</p></article>
-          <article class="feature"><div class="ico"><svg class="i" aria-hidden="true"><use href="#i-mail"/></svg></div><h3>Approve from your inbox</h3><p>Click the button or just reply APPROVE. Only replies from your own address count, and quoted text never does.</p></article>
-          <article class="feature"><div class="ico"><svg class="i" aria-hidden="true"><use href="#i-gauge"/></svg></div><h3>Limits that hold</h3><p>A daily send limit, duplicate checks, and a blocklist are enforced at the moment of sending.</p></article>
-          <article class="feature"><div class="ico"><svg class="i" aria-hidden="true"><use href="#i-cpu"/></svg></div><h3>Sandboxed AI</h3><p>Claude Code drafts with every tool disabled, so outside data can shape text but never trigger actions.</p></article>
-          <article class="feature"><div class="ico"><svg class="i" aria-hidden="true"><use href="#i-laptop"/></svg></div><h3>Local-first</h3><p>SQLite on your machine, keys in your own <code>.env</code>, and a dry-run mode until you're ready to go live.</p></article>
-        </div>
+        <ol>
+          <li class="reveal"><div><h3>Nothing leaves without your yes.</h3><p>Every message needs an explicit approval, and approving one never approves another.</p></div></li>
+          <li class="reveal"><div><h3>It never makes things up.</h3><p>Drafts may only use your profile and a stored job posting. People are never invented.</p></div></li>
+          <li class="reveal"><div><h3>Only your reply counts.</h3><p>Approvals by email are read from the first line you typed, from your own address. Quoted text can't approve anything.</p></div></li>
+          <li class="reveal"><div><h3>Limits hold at the last moment.</h3><p>The daily cap, duplicate checks and your do-not-contact list are enforced right as a message is sent.</p></div></li>
+          <li class="reveal"><div><h3>The AI can write, not act.</h3><p>Drafting runs with every tool disabled, so outside data can shape words but never trigger anything.</p></div></li>
+          <li class="reveal"><div><h3>It stays on your machine.</h3><p>Local database, your own keys, and a dry-run mode until you decide to go live.</p></div></li>
+        </ol>
       </div>
     </section>
 
-    <section class="alt" id="use">
+    <section id="desk">
       <div class="wrap">
-        <div class="section-head">
-          <span class="eyebrow">Use it yourself</span>
-          <h2>Set up ReachAI with your own accounts</h2>
-          <p>ReachAI is a single-user tool you run on your own computer. There's no sign-up: clone it, connect your accounts, and you're in control.</p>
-        </div>
-        <div class="use">
-          <ul class="need" aria-label="What you need">
-            <li><div class="ico"><svg class="i" aria-hidden="true"><use href="#i-laptop"/></svg></div><div><strong>Python 3.11+</strong><span>On macOS, Linux or Windows (WSL).</span></div></li>
-            <li><div class="ico"><svg class="i" aria-hidden="true"><use href="#i-search"/></svg></div><div><strong>An Apollo.io API key</strong><span>For finding people. Searches are free; each contact lookup uses about one credit.</span></div></li>
-            <li><div class="ico"><svg class="i" aria-hidden="true"><use href="#i-key"/></svg></div><div><strong>A Google Cloud OAuth client</strong><span>So ReachAI can email you approvals and send from your Gmail.</span></div></li>
-            <li><div class="ico"><svg class="i" aria-hidden="true"><use href="#i-cpu"/></svg></div><div><strong>Claude Code (optional)</strong><span>For AI-written drafts on your existing login. Without it, a fact-only template is used.</span></div></li>
-            <li><div class="ico"><svg class="i" aria-hidden="true"><use href="#i-user"/></svg></div><div><strong>Your real profile</strong><span>Email, a public resume link, your experience and the roles you want.</span></div></li>
-          </ul>
+        <div class="sec-head">
+          <div class="mono">03 — Your desk</div>
           <div>
-            <div class="code">
-              <div class="code-head"><span>Terminal</span><button type="button" id="copy-btn">Copy</button></div>
-<pre id="setup-cmds"><span class="c"># 1. Install</span>
-git clone https://github.com/AmanSingh-tech/ReachAI.git
-cd ReachAI
-python3 -m venv .venv
-.venv/bin/pip install -e .
-cp .env.example .env    <span class="c"># add APOLLO_API_KEY</span>
+            <h2>A quiet dashboard, <em>on localhost.</em></h2>
+            <p>Review drafts, see who's been contacted, and read the full history. It runs on your computer and nowhere else.</p>
+          </div>
+        </div>
+        <figure class="shot reveal">
+          <img src="assets/approvals.png" width="1280" height="773" loading="lazy" alt="The ReachAI dashboard's approvals view: a draft to an engineering manager with LinkedIn and job links, and Approve or Reject buttons">
+          <figcaption class="mono"><span>127.0.0.1:8000 / approvals</span><span>sample data</span></figcaption>
+        </figure>
+      </div>
+    </section>
 
-<span class="c"># 2. Connect Gmail (OAuth JSON in secrets/)</span>
-.venv/bin/reachai auth-gmail
+    <section id="setup" style="padding-top:0">
+      <div class="wrap">
+        <div class="sec-head">
+          <div class="mono">04 — Set it up</div>
+          <div>
+            <h2>Clone it, connect <em>your</em> accounts.</h2>
+            <p>There's no sign-up and no server of ours. ReachAI runs with your keys, for you only.</p>
+          </div>
+        </div>
+        <div class="setup">
+          <ol class="needs" aria-label="What you need">
+            <li><div><strong>Python 3.11 or newer</strong><span>macOS, Linux, or Windows with WSL.</span></div></li>
+            <li><div><strong>An Apollo.io API key</strong><span>Searching is free; each contact lookup costs about one credit, capped per run.</span></div></li>
+            <li><div><strong>A Google Cloud OAuth client</strong><span>So ReachAI can email you drafts and send from your Gmail.</span></div></li>
+            <li><div><strong>Claude Code, optionally</strong><span>For written drafts on your existing login. Without it, a fact-only template is used.</span></div></li>
+            <li><div><strong>Your real profile</strong><span>Email, a public resume link, your experience and the roles you want.</span></div></li>
+          </ol>
+          <div>
+            <div class="term">
+              <div class="term-bar"><span class="mono">~/ReachAI</span><button type="button" id="copy">Copy</button></div>
+<pre id="cmds"><span class="c"># install</span>
+<span class="p">$ </span>git clone https://github.com/AmanSingh-tech/ReachAI.git
+<span class="p">$ </span>cd ReachAI &amp;&amp; python3 -m venv .venv
+<span class="p">$ </span>.venv/bin/pip install -e .
+<span class="p">$ </span>cp .env.example .env   <span class="c"># add APOLLO_API_KEY</span>
 
-<span class="c"># 3. Open the dashboard and finish the checklist</span>
-.venv/bin/reachai serve   <span class="c"># http://127.0.0.1:8000</span>
+<span class="c"># connect gmail (OAuth JSON in secrets/)</span>
+<span class="p">$ </span>.venv/bin/reachai auth-gmail
 
-<span class="c"># 4. Find people and get approval emails</span>
-.venv/bin/reachai run</pre>
+<span class="c"># open your desk, then find people</span>
+<span class="p">$ </span>.venv/bin/reachai serve
+<span class="p">$ </span>.venv/bin/reachai run</pre>
             </div>
-            <p class="note">Starts in <strong>dry-run</strong>: approval emails are real, sends are simulated. Switch to live sending once you're happy. Full setup guide in the <a href="https://github.com/AmanSingh-tech/ReachAI#readme" rel="noopener">README</a>.</p>
+            <p class="after">It starts in <b>dry-run</b>: approval emails are real, sends are simulated. Full guide in the <a href="https://github.com/AmanSingh-tech/ReachAI#readme" rel="noopener">README</a>.</p>
           </div>
         </div>
       </div>
     </section>
 
-    <section id="faq">
-      <div class="wrap">
-        <div class="section-head">
-          <span class="eyebrow">FAQ</span>
-          <h2>Questions people ask</h2>
-        </div>
-        <div class="faq">
-          <details><summary>Does it message people on LinkedIn?</summary><p>No. LinkedIn doesn't offer an API for sending messages, and automating your account breaks its terms and risks a ban. ReachAI emails people at their verified work address and shows you their LinkedIn profile so you can look them up yourself.</p></details>
-          <details><summary>Can it send anything without me?</summary><p>No. Every message needs your explicit approval, by button or by replying APPROVE from your own address. In dry-run mode, even approved messages are only simulated.</p></details>
-          <details><summary>Is it a hosted service?</summary><p>No. It runs on your own computer with your own API keys, and your data stays in a local database. This website only explains the project.</p></details>
-          <details><summary>What does it cost to run?</summary><p>ReachAI itself is free. Apollo charges credits for contact lookups (you set a cap per run), Gmail is free, and drafts use your existing Claude plan, or no AI at all if you prefer the template.</p></details>
-          <details><summary>Will the messages sound generic?</summary><p>Each draft names the actual job posting and company and uses your real experience. Because it can't invent details, it stays short and specific rather than flattering. You can edit your profile to change what it draws on.</p></details>
+    <section id="faq" style="padding-top:0">
+      <div class="wrap faq">
+        <div class="sec-head" style="display:block;margin:0"><div class="mono">05 — Questions</div></div>
+        <div class="qa">
+          <details><summary>Does it message people on LinkedIn?<span class="x" aria-hidden="true"></span></summary><p>No. LinkedIn has no public API for messages, and automating your account breaks its terms and can get it banned. ReachAI writes to people's verified work email and gives you their LinkedIn so you can look them up yourself.</p></details>
+          <details><summary>Can it send anything without me?<span class="x" aria-hidden="true"></span></summary><p>No. Each message needs your approval — by button, in the dashboard, or by replying APPROVE from your own address. In dry-run mode even approved messages are only simulated.</p></details>
+          <details><summary>Is this a hosted service?<span class="x" aria-hidden="true"></span></summary><p>No. You run it on your own computer with your own API keys and the data stays in a local database. This website only explains the project.</p></details>
+          <details><summary>What does it cost to run?<span class="x" aria-hidden="true"></span></summary><p>ReachAI is free. Apollo charges credits for contact lookups (you set a cap per run), Gmail is free, and drafts use your existing Claude plan — or no AI at all if you choose the template.</p></details>
+          <details><summary>Won't the notes sound generic?<span class="x" aria-hidden="true"></span></summary><p>Each one names the actual posting and company and uses your real experience. Because it can't invent details, it stays short and specific instead of flattering.</p></details>
         </div>
       </div>
     </section>
 
-    <section class="alt" id="contact">
-      <div class="wrap contact">
-        <div class="section-head" style="margin-bottom:0">
-          <span class="eyebrow">Contact</span>
-          <h2>Have a question?</h2>
-          <p>Ask about setting ReachAI up, a bug you hit, or an idea for it. You'll get a reply by email.</p>
-          <p style="margin-top:16px;font-size:16px">Prefer GitHub? <a href="https://github.com/AmanSingh-tech/ReachAI/issues" rel="noopener">Open an issue</a>.</p>
+    <section id="contact" style="padding-top:0">
+      <div class="wrap contact-grid">
+        <div class="sec-head" style="display:block;margin:0">
+          <div class="mono">06 — Write to us</div>
+          <h2 style="margin-top:22px">Questions, bugs, <em>ideas.</em></h2>
+          <p>Stuck on setup, found something broken, or want it to do more? Write a note and you'll get a reply by email.</p>
+          <p style="margin-top:14px">Prefer GitHub? <a href="https://github.com/AmanSingh-tech/ReachAI/issues" rel="noopener">Open an issue</a>.</p>
         </div>
 
         <!-- Set data-endpoint to your Formspree form URL, e.g. https://formspree.io/f/abcdwxyz -->
-        <form id="contact-form" data-endpoint="" novalidate>
-          <div class="form-status" id="form-status" role="alert" tabindex="-1" hidden></div>
-          <div class="field">
-            <label for="name">Name</label>
-            <input id="name" name="name" autocomplete="name" required aria-describedby="name-err">
-            <p class="err" id="name-err"></p>
+        <form class="write" id="contact-form" data-endpoint="" novalidate>
+          <div class="to mono"><span>TO: THE REACHAI MAINTAINER</span><span id="today"></span></div>
+          <div class="notice bad" id="form-notice" role="alert" tabindex="-1" hidden></div>
+          <div class="row2">
+            <div class="field"><label for="name">Your name</label><input id="name" name="name" autocomplete="name" required aria-describedby="name-err"><p class="err" id="name-err"></p></div>
+            <div class="field"><label for="email">Your email</label><input id="email" name="email" type="email" autocomplete="email" inputmode="email" required aria-describedby="email-err"><p class="err" id="email-err"></p></div>
           </div>
           <div class="field">
-            <label for="email">Email</label>
-            <input id="email" name="email" type="email" autocomplete="email" required aria-describedby="email-err">
-            <p class="err" id="email-err"></p>
+            <label for="topic">About</label>
+            <select id="topic" name="topic"><option>Setting it up</option><option>Something's broken</option><option>An idea</option><option>Something else</option></select>
           </div>
-          <div class="field">
-            <label for="topic">Topic <span class="opt">(optional)</span></label>
-            <select id="topic" name="topic">
-              <option>Setting it up</option>
-              <option>Bug or problem</option>
-              <option>Idea or feedback</option>
-              <option>Something else</option>
-            </select>
+          <div class="field"><label for="message">Your note</label><textarea id="message" name="message" required aria-describedby="message-err"></textarea><p class="err" id="message-err"></p></div>
+          <div class="hp" aria-hidden="true"><label for="website">Leave empty</label><input id="website" name="_gotcha" tabindex="-1" autocomplete="off"></div>
+          <div class="send-row">
+            <span class="mono">Used only to reply to you.</span>
+            <button class="btn stamp" type="submit" id="send">Send note <span class="arrow" aria-hidden="true">→</span></button>
           </div>
-          <div class="field">
-            <label for="message">Message</label>
-            <textarea id="message" name="message" required minlength="10" aria-describedby="message-err"></textarea>
-            <p class="err" id="message-err"></p>
-          </div>
-          <div class="hp" aria-hidden="true"><label for="company-website">Leave this empty</label><input id="company-website" name="_gotcha" tabindex="-1" autocomplete="off"></div>
-          <button class="btn" type="submit" id="send-btn"><svg class="i" aria-hidden="true"><use href="#i-mail"/></svg>Send message</button>
-          <p class="privacy">Your name and email are used only to reply to you.</p>
+          <div class="rubber yes" aria-hidden="true">RECEIVED<small>THANK YOU</small></div>
         </form>
       </div>
     </section>
@@ -356,63 +464,98 @@ cp .env.example .env    <span class="c"># add APOLLO_API_KEY</span>
 
   <footer>
     <div class="wrap">
-      <span>ReachAI · a local-first outreach assistant</span>
-      <span><a href="https://github.com/AmanSingh-tech/ReachAI" rel="noopener">GitHub</a></span>
+      <div class="big" aria-hidden="true">ReachAI</div>
+      <div class="line mono"><span>Outreach that waits for your yes.</span><span><a href="https://github.com/AmanSingh-tech/ReachAI" rel="noopener">GitHub</a> · <a href="#top">Back to top</a></span></div>
     </div>
   </footer>
 
   <script>
-    // Copy setup commands (comments stripped).
-    document.getElementById('copy-btn').addEventListener('click', async (e) => {
-      const text = document.getElementById('setup-cmds').innerText.split('\n')
-        .map(l => l.replace(/\s+#.*$/, '')).filter(l => l.trim() && !l.trim().startsWith('#')).join('\n');
-      try { await navigator.clipboard.writeText(text); e.target.textContent = 'Copied'; }
-      catch { e.target.textContent = 'Select & copy'; }
-      setTimeout(() => e.target.textContent = 'Copy', 2000);
-    });
+    // ---------- Letter demo (explanation: shows grounding + approval) ----------
+    const drafts = [
+      { to: 'Priya Shah &lt;priya@acme.example&gt;', role: 'Engineering Manager · Acme AI', re: 'Interest in the Senior AI Engineer role',
+        body: 'Hi Priya,\n\nI came across the <mark class="post">Senior AI Engineer</mark> opening at <mark class="post">Acme AI</mark>. I work with <mark class="you">Python, LLMs and RAG</mark>. My experience includes the <mark class="you">Applied ML Intern</mark> role. I’d value the chance to learn more about the team. Here is my resume: <mark class="you">sam.example/resume</mark>\n\nThanks,\nSam' },
+      { to: 'Daniel Okafor &lt;daniel@northwind.example&gt;', role: 'Technical Recruiter · Northwind Robotics', re: 'Interest in the ML Engineer role',
+        body: 'Hi Daniel,\n\nI came across the <mark class="post">ML Engineer</mark> opening at <mark class="post">Northwind Robotics</mark>. I work with <mark class="you">Python and PyTorch</mark>. My experience includes the <mark class="you">Research Assistant, Vision Lab</mark> role. I’d value the chance to learn more about the team. Here is my resume: <mark class="you">sam.example/resume</mark>\n\nThanks,\nSam' },
+      { to: 'Mei Tanaka &lt;mei@lumen.example&gt;', role: 'Founder · Lumen Labs', re: 'Interest in the LLM Engineer role',
+        body: 'Hi Mei,\n\nI came across the <mark class="post">LLM Engineer</mark> opening at <mark class="post">Lumen Labs</mark>. I work with <mark class="you">LLMs, RAG and evaluation</mark>. My experience includes the <mark class="you">Backend Engineer Intern</mark> role. I’d value the chance to learn more about the team. Here is my resume: <mark class="you">sam.example/resume</mark>\n\nThanks,\nSam' },
+    ];
+    const $ = (id) => document.getElementById(id);
+    const letter = $('letter');
+    let i = 0, sentToday = 0;
 
-    // Contact form: inline validation on blur and submit, posts to a form service (Formspree).
-    const form = document.getElementById('contact-form');
-    const status = document.getElementById('form-status');
-    const rules = {
-      name: (v) => v.trim() ? '' : 'Enter your name.',
-      email: (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()) ? '' : 'Enter a valid email address, like you@example.com.',
-      message: (v) => v.trim().length >= 10 ? '' : 'Write at least 10 characters so I can help.',
+    function show(n) {
+      const d = drafts[n];
+      $('d-to').innerHTML = d.to; $('d-role').textContent = d.role.replace(/&amp;/g, '&'); $('d-re').textContent = d.re;
+      $('d-body').innerHTML = d.body; $('draft-n').textContent = `${n + 1} / ${drafts.length}`;
+      letter.dataset.state = 'pending'; $('d-status').textContent = '';
+      $('approve').hidden = $('reject').hidden = false; $('next').hidden = true;
+    }
+    function decide(state) {
+      letter.dataset.state = state;
+      if (state === 'approved') sentToday += 1;
+      $('d-status').textContent = state === 'approved' ? `Sent from your Gmail · ${sentToday} of 5 today` : 'Discarded. Nothing was sent.';
+      $('approve').hidden = $('reject').hidden = true; $('next').hidden = false; $('next').focus({ preventScroll: true });
+    }
+    $('approve').onclick = () => decide('approved');
+    $('reject').onclick = () => decide('rejected');
+    $('next').onclick = () => {
+      const body = $('d-body');
+      body.classList.add('swap');           // crossfade masked with a 2px blur
+      letter.dataset.state = 'pending';     // stamp lifts off (same transition, reversed)
+      setTimeout(() => { i = (i + 1) % drafts.length; show(i); body.classList.remove('swap'); $('approve').focus({ preventScroll: true }); }, 200);
     };
-    function check(id) {
-      const el = document.getElementById(id), msg = rules[id](el.value);
-      document.getElementById(`${id}-err`).textContent = msg;
-      el.setAttribute('aria-invalid', String(Boolean(msg)));
-      return !msg;
-    }
-    Object.keys(rules).forEach(id => document.getElementById(id).addEventListener('blur', () => check(id)));
+    show(0);
 
-    function show(kind, html) {
-      status.className = `form-status ${kind}`; status.innerHTML = html; status.hidden = false; status.focus();
-    }
+    // ---------- Scroll reveal: marketing only, once ----------
+    const reveals = document.querySelectorAll('.reveal');
+    if ('IntersectionObserver' in window) {
+      const io = new IntersectionObserver((entries) => entries.forEach((e) => {
+        if (!e.isIntersecting) return;
+        const siblings = [...e.target.parentElement.children].filter((el) => el.classList.contains('reveal'));
+        e.target.style.transitionDelay = `${Math.min(siblings.indexOf(e.target), 5) * 50}ms`;
+        e.target.classList.add('seen'); io.unobserve(e.target);
+      }), { rootMargin: '0px 0px -80px 0px' });
+      reveals.forEach((el) => io.observe(el));
+    } else reveals.forEach((el) => el.classList.add('seen'));
+
+    // ---------- Copy commands ----------
+    $('copy').onclick = async (e) => {
+      const text = $('cmds').innerText.split('\n').filter((l) => l.trim().startsWith('$')).map((l) => l.replace(/^\$\s*/, '').replace(/\s+#.*$/, '')).join('\n');
+      try { await navigator.clipboard.writeText(text); e.target.textContent = 'Copied'; } catch { e.target.textContent = 'Select to copy'; }
+      setTimeout(() => (e.target.textContent = 'Copy'), 1800);
+    };
+
+    // ---------- Contact form ----------
+    $('today').textContent = new Date().toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase();
+    const form = $('contact-form'), notice = $('form-notice');
+    const rules = {
+      name: (v) => (v.trim() ? '' : 'Tell us your name.'),
+      email: (v) => (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()) ? '' : 'Enter an email we can reply to, like you@example.com.'),
+      message: (v) => (v.trim().length >= 10 ? '' : 'Write at least a sentence so we can help.'),
+    };
+    const check = (id) => {
+      const el = $(id), msg = rules[id](el.value);
+      $(`${id}-err`).textContent = msg; el.setAttribute('aria-invalid', String(Boolean(msg)));
+      return !msg;
+    };
+    Object.keys(rules).forEach((id) => $(id).addEventListener('blur', () => check(id)));
+    const fail = (html) => { notice.innerHTML = html; notice.hidden = false; notice.focus(); };
+    const issue = '<a href="https://github.com/AmanSingh-tech/ReachAI/issues" rel="noopener">open an issue on GitHub</a>';
 
     form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const invalid = Object.keys(rules).filter(id => !check(id));
-      if (invalid.length) { document.getElementById(invalid[0]).focus(); return; }
-      if (form._gotcha.value) return; // spam trap
-
-      const endpoint = form.dataset.endpoint;
-      if (!endpoint) {
-        show('bad', 'The contact form isn’t connected yet. Please <a href="https://github.com/AmanSingh-tech/ReachAI/issues" rel="noopener">open an issue on GitHub</a> instead.');
-        return;
-      }
-      const button = document.getElementById('send-btn');
-      button.disabled = true; button.lastChild.textContent = 'Sending…';
+      e.preventDefault(); notice.hidden = true;
+      const bad = Object.keys(rules).filter((id) => !check(id));
+      if (bad.length) { $(bad[0]).focus(); return; }
+      if (form._gotcha.value) return;
+      if (!form.dataset.endpoint) { fail(`The form isn’t connected yet — please ${issue} instead.`); return; }
+      const btn = $('send'); btn.disabled = true;
       try {
-        const res = await fetch(endpoint, { method: 'POST', headers: { Accept: 'application/json' }, body: new FormData(form) });
+        const res = await fetch(form.dataset.endpoint, { method: 'POST', headers: { Accept: 'application/json' }, body: new FormData(form) });
         if (!res.ok) throw new Error();
-        form.reset(); show('ok', 'Thanks! Your message was sent. You’ll get a reply by email.');
-      } catch {
-        show('bad', 'Sorry, the message couldn’t be sent. Please try again, or <a href="https://github.com/AmanSingh-tech/ReachAI/issues" rel="noopener">open an issue on GitHub</a>.');
-      } finally {
-        button.disabled = false; button.lastChild.textContent = 'Send message';
-      }
+        form.dataset.state = 'sent'; form.reset();
+        btn.firstChild.textContent = 'Sent ';
+      } catch { fail(`That didn’t go through. Try again, or ${issue}.`); }
+      finally { btn.disabled = false; }
     });
   </script>
 </body>
