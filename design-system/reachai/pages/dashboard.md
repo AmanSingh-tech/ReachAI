@@ -26,22 +26,28 @@
 
 ### Color Overrides
 
-Adjusted for WCAG AA contrast with white or dark text on filled controls (implemented in `src/reachai/static/index.html`):
+**Identity v2 — paper, ink and stamp** (replaces the generated teal palette; shared with `site/index.html`). All text pairs verified at WCAG AA (lowest 4.68:1).
 
-| Role | Light | Dark | Why |
-|------|-------|------|-----|
-| Primary (buttons, active chip) | `#0F766E` on `#FFFFFF` | `#2DD4BF` on `#042F2E` | Master `#0D9488` with white text is below 4.5:1 |
-| Accent / CTA | `#C2410C` on `#FFFFFF` | `#FB923C` on `#1C0A00` | Master `#EA580C` with white text is below 4.5:1 |
-| Border | `#CDEDE7` | `#24413C` | Master `#99F6E4` is too loud for dense tables |
-| Destructive | `#B91C1C` | `#F87171` | Outline button text needs 4.5:1 on surface |
-| Background / Surface | `#F0FDFA` / `#FFFFFF` | `#0B1514` / `#11201E` | Dark mode derived from Master hues |
+| Role | Light | Dark |
+|------|-------|------|
+| Background (paper) | `#F3EFE6` | `#12110E` |
+| Surface (card) | `#FBF9F4` | `#1D1C18` |
+| Surface deep | `#E9E3D6` | `#1A1915` |
+| Text (ink) | `#191813` | `#EEEAE0` |
+| Muted text | `#5C574C` | `#A8A295` |
+| Rules / borders | ink at 13–14% | ink at 13% |
+| Primary buttons | ink fill, paper text | ink fill, paper text |
+| Accent (stamp) | `#B8321C` | `#F2735A` |
+| Success (sent) | `#2E6A3A` | `#86C994` |
+| Warning (pending) | `#8A5A00` | `#E7B65C` |
 
-Status pills: pending = amber, approved/sending = primary-soft, sent/contacted = green, rejected = red.
+Typography: Instrument Serif (headings, numbers), Geist (UI text), Geist Mono (labels, pills, metadata).
 
 ### Component Overrides
 
 - App shell: left sidebar navigation (collapses to a top tab bar under 860px), hash routes for deep links (`#/approvals`).
-- Buttons: 44px minimum height; disabled buttons use surface/muted colors instead of opacity so they read as disabled on bright fills.
+- Buttons: pill shape, 44px minimum height, `scale(0.97)` on press (160ms, `cubic-bezier(0.23, 1, 0.32, 1)`); hover effects gated behind `(hover: hover) and (pointer: fine)`; disabled buttons use surface/muted colors.
+- Motion (emil-design-eng / animate skills): dialogs enter from `scale(0.96)` + opacity in 220ms; toasts exit faster than they enter; no animation on navigation or other high-frequency actions; reduced motion keeps fades and drops movement.
 - Reject asks for confirmation; approve shows the delivery result in a toast.
 
 ---

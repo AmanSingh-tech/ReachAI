@@ -132,11 +132,14 @@ All settings live in `.env` (see [`.env.example`](.env.example)).
 | `REACHAI_DB_PATH` | `data/reachai.db` | SQLite database |
 | `REACHAI_CANDIDATE_PATH` | `data/candidate.json` | Your profile |
 
-## Design system and UI skill
+## Design and UI skills
 
-The dashboard follows a design system generated with the [UI UX Pro Max](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill) skill (MIT): flat style, teal primary with an orange accent, Plus Jakarta Sans, light and dark modes, accessible contrast, visible focus states and reduced-motion support. The tokens and rules live in [`design-system/reachai/MASTER.md`](design-system/reachai/MASTER.md).
+The dashboard and the project website share one identity: **paper, ink and a postage-stamp accent**, because every message ReachAI writes is a letter you sign off on. Headlines are set in Instrument Serif, text in Geist, labels in Geist Mono. Both work in light and dark mode, meet WCAG AA contrast, and respect reduced-motion settings.
 
-The skill itself is vendored in [`.claude/skills/ui-ux-pro-max`](.claude/skills/ui-ux-pro-max), so Claude Code picks it up automatically when you work on the UI in this repo. You can also query it directly:
+Two sets of Claude Code skills are vendored in [`.claude/skills`](.claude/skills) (both MIT) and load automatically when you work on the UI in this repo:
+
+- **[Emil Kowalski's design-engineering skills](https://github.com/emilkowalski/skills)**: `emil-design-eng`, `animate`, `review-animations`, `improve-animations`, `find-animation-opportunities`, `animation-performance`, `animation-vocabulary`, `apple-design`, `mobile-native`, `break-ui`. The motion follows them: strong ease-out curves, press feedback on every button, hover effects only on real pointers, stagger and scroll reveals only on the marketing page.
+- **[UI UX Pro Max](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill)**: searchable UX guidelines used for layout, accessibility and form behaviour. Its first generated design system is kept in [`design-system/reachai`](design-system/reachai) for reference; the current palette is documented in [`design-system/reachai/pages/dashboard.md`](design-system/reachai/pages/dashboard.md).
 
 ```bash
 python3 .claude/skills/ui-ux-pro-max/scripts/search.py "approval queue" --domain ux
