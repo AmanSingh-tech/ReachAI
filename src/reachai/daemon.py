@@ -1,9 +1,8 @@
 """
 ReachAI background daemon for approval processing and sending.
 
-This daemon runs two loops:
-1. ApprovalLoop: Polls Gmail for approval replies
-2. SendLoop: Processes approved outreach periodically
+Every poll it applies APPROVE/REJECT replies and sends approved outreach;
+once a day it finds new people via Apollo and emails drafts for approval.
 """
 
 from __future__ import annotations
@@ -24,9 +23,9 @@ from reachai.workers import SendWorker
 class ReachAIDaemon:
     """Background daemon for approval processing and sending."""
 
-    def __init__(self, db_path: str = "data/reachai.db", approval_poll_interval: int = 60, send_interval: int = 300):
-        self.db_path = db_path
+    def __init__(self, db_path: str | None = None, approval_poll_interval: int = 60, send_interval: int = 300):
         self.db = Database(db_path)
+        self.db_path = str(self.db.db_path)
         self.gmail_client = GmailClient()
         self.approval_loop = ApprovalLoop(gmail_client=self.gmail_client, db=self.db)
         self.send_worker = SendWorker(store=self.db)
@@ -82,47 +81,47 @@ class ReachAIDaemon:
             return False
 
     def run(self) -> None:
-        """Run the daemon loop."""
+        """Run the daemon loop: replies and sends every poll, discovery once a day."""
+        from reachai.service import ReachAIService, WorkflowError
+
+        service = ReachAIService(db=self.db)
         self.running = True
         self.setup_signal_handlers()
         self.write_pid()
-        
+
         print(f"[ReachAI Daemon] Starting (PID {os.getpid()})")
-        print(f"[ReachAI Daemon] Approval poll interval: {self.approval_poll_interval}s")
-        print(f"[ReachAI Daemon] Send interval: {self.send_interval}s")
-        
+        print(f"[ReachAI Daemon] Reply poll interval: {self.approval_poll_interval}s")
+        last_cycle_day = None
+
         try:
             while self.running:
-                current_time = time.time()
-                
-                # Check for approval emails (runs every poll_interval)
-                try:
-                    messages = self.gmail_client.get_new_messages(query="is:unread subject:ReachAI")
-                    if messages:
-                        print(f"[ReachAI Daemon] Processing {len(messages)} approval emails...")
-                        for message in messages:
-                            result = self.approval_loop.worker.process_email(message)
-                            if result["action"] == "APPROVED":
-                                print(f"  ✓ Approved: {result.get('token', 'unknown')}")
-                            elif result["action"] == "REJECTED":
-                                print(f"  ✗ Rejected: {result.get('token', 'unknown')}")
-                except Exception as e:
-                    print(f"[ReachAI Daemon] Error processing approvals: {e}")
-                
-                # Check for pending sends periodically
-                if current_time - self.last_send_time >= self.send_interval:
+                today = time.strftime("%Y-%m-%d")
+                if today != last_cycle_day and service.apollo.configured() and service.gmail.authorized():
                     try:
-                        pending = self.send_worker.process_pending()
-                        if pending:
-                            print(f"[ReachAI Daemon] Sent {len(pending)} messages")
-                            for result in pending:
-                                print(f"  ✓ Sent: {result['outreach_id']}")
-                        self.last_send_time = current_time
-                    except Exception as e:
-                        print(f"[ReachAI Daemon] Error sending outreach: {e}")
-                
+                        summary = service.run_cycle(find=True)
+                        found = summary.get("found") or {}
+                        print(f"[ReachAI Daemon] Found {len(found.get('added', []))} people; "
+                              f"emailed {len(summary['drafted'])} drafts for approval")
+                        if found.get("error"):
+                            print(f"[ReachAI Daemon] Apollo: {found['error']}")
+                    except WorkflowError as e:
+                        print(f"[ReachAI Daemon] Discovery skipped: {e}")
+                    last_cycle_day = today
+
+                try:
+                    for decision in service.process_replies():
+                        delivery = (decision.get("delivery") or {}).get("status", "")
+                        print(f"  {decision['action']}: {decision.get('token', '')} {delivery}")
+                except Exception as e:
+                    print(f"[ReachAI Daemon] Error processing replies: {e}")
+
+                try:
+                    for result in service.send_approved():
+                        print(f"  ✓ Sent: {result['outreach_id']}")
+                except Exception as e:
+                    print(f"[ReachAI Daemon] Error sending outreach: {e}")
+
                 time.sleep(self.approval_poll_interval)
-        
         finally:
             self.remove_pid()
             print("[ReachAI Daemon] Stopped")
