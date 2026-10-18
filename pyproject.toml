@@ -4,6 +4,8 @@ version = "0.1.0"
 description = "Local-first AI outreach assistant"
 requires-python = ">=3.11"
 dependencies = [
+  "fastapi>=0.115.0",
+  "uvicorn>=0.30.6",
   "pydantic>=2.9.2",
   "python-dotenv>=1.0.1",
   "pyyaml>=6.0.2",
@@ -16,11 +18,18 @@ dependencies = [
   "beautifulsoup4>=4.12.3",
 ]
 
+[project.scripts]
+reachai = "reachai.cli:run_cli"
+reachai-web = "reachai.api:run"
+
 [tool.setuptools]
 package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+reachai = ["static/*.html"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src", "."]

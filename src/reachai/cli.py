@@ -13,44 +13,28 @@ from reachai.models.target import TargetProfile
 from reachai.reporting import ReportGenerator
 from reachai.skills.discovery import DiscoverySkill
 from reachai.skills.ingestion import CSVIngestionSkill
+from reachai.skills.profile import ProfileSkill
 from reachai.skills.scoring import ScoringSkill
 from reachai.storage.database import Database
 
 
 def build_candidate() -> CandidateProfile:
-    return CandidateProfile(
-        name="Aman Kumar Singh",
-        email="aman@example.com",
-        resume_url="https://example.com/resume",
-        skills=["Python", "LLMs", "RAG", "AI Agents", "Next.js", "Node.js"],
-        experience=["LLM workflows", "AI product engineering", "full-stack product work"],
-        strengths=["AI systems", "agentic workflows", "MLOps"],
-        target_roles=["AI Engineer", "Applied AI Engineer", "ML Engineer"],
-    )
-
-
-def build_target(name: str, company: str, title: str = "Hiring Manager") -> TargetProfile:
-    return TargetProfile(
-        name=name,
-        title=title,
-        company=company,
-        linkedin_url="https://linkedin.com/in/example",
-        source="cli",
-    )
+    settings = get_settings()
+    return ProfileSkill(settings.candidate_path).load()
 
 
 def cmd_setup() -> dict:
     return {"status": "setup_complete", "candidate": build_candidate().model_dump()}
 
 
-def cmd_discover(db_path: str = "data/reachai.db", keywords: list[str] | None = None) -> dict:
+def cmd_discover(db_path: str | None = None, keywords: list[str] | None = None) -> dict:
     db = Database(db_path)
     skill = DiscoverySkill(db=db)
     discovered = skill.discover({"keywords": keywords or ["AI", "engineer", "ML", "LLM"]})
     return {"status": "discover_complete", "jobs": discovered}
 
 
-def cmd_rank(db_path: str = "data/reachai.db", *, keywords: list[str] | None = None, limit: int = 10) -> dict:
+def cmd_rank(db_path: str | None = None, *, keywords: list[str] | None = None, limit: int = 10) -> dict:
     db = Database(db_path)
     jobs = cmd_discover(db_path, keywords or ["AI", "engineer", "ML", "LLM"])["jobs"]
     candidate = build_candidate()
@@ -81,30 +65,30 @@ def cmd_rank(db_path: str = "data/reachai.db", *, keywords: list[str] | None = N
     return {"status": "rank_complete", "jobs": ranked[:limit]}
 
 
-def cmd_outreach(db_path: str = "data/reachai.db", *, target_id: str | None = None, target_name: str = "Sarah Chen", target_company: str = "Northstar Labs") -> dict:
+def cmd_outreach(db_path: str | None = None, *, target_id: str | None = None) -> dict:
     db = Database(db_path)
     settings = get_settings()
     orchestrator = ReachAIOrchestrator()
     candidate = build_candidate()
 
-    if target_id:
-        target_record = db.get_target(target_id)
-        if not target_record:
-            return {"status": "target_not_found", "target_id": target_id}
-        target = TargetProfile(
-            target_id=target_record.get("id", target_id),
-            name=target_record.get("name", target_name),
-            title=target_record.get("title", "Hiring Manager"),
-            company=target_record.get("company", target_company),
-            linkedin_url=target_record.get("linkedin_url"),
-            email=target_record.get("email"),
-            source=target_record.get("source", "db"),
-            location=target_record.get("location"),
-            headline=target_record.get("headline"),
-            status=target_record.get("status", "DISCOVERED"),
-        )
-    else:
-        target = build_target(target_name, target_company)
+    # Never invent a target: outreach is only drafted for a stored, real record.
+    if not target_id:
+        return {"status": "target_required", "message": "Pass --target-id (see `reachai list-targets`)."}
+    target_record = db.get_target(target_id)
+    if not target_record:
+        return {"status": "target_not_found", "target_id": target_id}
+    target = TargetProfile(
+        target_id=target_record.get("id", target_id),
+        name=target_record["name"],
+        title=target_record.get("title", "Hiring Manager"),
+        company=target_record["company"],
+        linkedin_url=target_record.get("linkedin_url"),
+        email=target_record.get("email"),
+        source=target_record.get("source", "db"),
+        location=target_record.get("location"),
+        headline=target_record.get("headline"),
+        status=target_record.get("status", "DISCOVERED"),
+    )
 
     sent_today = db.count_sent_today()
     if sent_today >= settings.daily_limit:
@@ -131,9 +115,8 @@ def cmd_outreach(db_path: str = "data/reachai.db", *, target_id: str | None = No
             "created_at": datetime.now(timezone.utc).isoformat(),
         })
 
-        approval_token = result.get("approval_token")
-        if approval_token:
-            db.create_approval_token(outreach_id)
+        approval_token = db.create_approval_token(outreach_id, result.get("approval_token"))
+        result["approval_token"] = approval_token
 
         return {
             "status": "outreach_ready",
@@ -257,16 +240,46 @@ def cmd_list_jobs() -> dict:
     }
 
 
+def _service():
+    from reachai.service import ReachAIService
+
+    return ReachAIService()
+
+
+def cmd_auth_gmail() -> dict:
+    """One-time browser consent so ReachAI can send from and read replies in your Gmail."""
+    from reachai.integrations.gmail import GmailClient
+
+    account = GmailClient().authorize()
+    return {"status": "gmail_authorized", "account": account}
+
+
+def cmd_find(max_enrich: int | None = None) -> dict:
+    return {"status": "find_complete", **_service().find_people(max_enrich=max_enrich)}
+
+
+def cmd_run(find: bool = True) -> dict:
+    return {"status": "run_complete", **_service().run_cycle(find=find)}
+
+
+def cmd_check_replies() -> dict:
+    service = _service()
+    decisions = service.process_replies()
+    return {"status": "ok", "decisions": decisions, "sent_pending": service.send_approved()}
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="ReachAI local CLI")
     subparsers = parser.add_subparsers(dest="command", required=True)
     subparsers.add_parser("setup")
     subparsers.add_parser("discover")
     subparsers.add_parser("rank")
-    subparsers.add_parser("outreach")
+    outreach_parser = subparsers.add_parser("outreach", help="Draft outreach for a stored target")
+    outreach_parser.add_argument("--target-id", help="Target id from `reachai list-targets`")
     subparsers.add_parser("status")
     subparsers.add_parser("report")
     subparsers.add_parser("dashboard", help="Generate the ReachAI dashboard")
+    subparsers.add_parser("serve", help="Start the local web dashboard")
     subparsers.add_parser("daemon-start", help="Start background approval/send daemon")
     subparsers.add_parser("daemon-stop", help="Stop background daemon")
     subparsers.add_parser("daemon-status", help="Check daemon status")
@@ -280,6 +293,13 @@ def main() -> None:
     
     subparsers.add_parser("list-targets", help="List all targets")
     subparsers.add_parser("list-jobs", help="List all jobs")
+
+    subparsers.add_parser("auth-gmail", help="Authorize Gmail once (opens a browser)")
+    find_parser = subparsers.add_parser("find", help="Find people at hiring companies via Apollo")
+    find_parser.add_argument("--max-enrich", type=int, help="Max Apollo enrichments (credits) this run")
+    run_parser = subparsers.add_parser("run", help="Find people, draft, and email each draft for approval")
+    run_parser.add_argument("--no-find", action="store_true", help="Only draft for people already found")
+    subparsers.add_parser("check-replies", help="Apply APPROVE/REJECT email replies and send approved")
     
     args = parser.parse_args()
 
@@ -290,13 +310,17 @@ def main() -> None:
     elif args.command == "rank":
         print(json.dumps(cmd_rank(), indent=2))
     elif args.command == "outreach":
-        print(json.dumps(cmd_outreach(), indent=2))
+        print(json.dumps(cmd_outreach(target_id=args.target_id), indent=2))
     elif args.command == "status":
         print(json.dumps(cmd_status(), indent=2))
     elif args.command == "report":
         print(json.dumps(cmd_report(), indent=2))
     elif args.command == "dashboard":
         print(json.dumps(cmd_dashboard(), indent=2))
+    elif args.command == "serve":
+        from reachai.api import run
+
+        run()
     elif args.command == "daemon-start":
         cmd_daemon_start()
     elif args.command == "daemon-stop":
@@ -311,7 +335,25 @@ def main() -> None:
         print(json.dumps(cmd_list_targets(), indent=2))
     elif args.command == "list-jobs":
         print(json.dumps(cmd_list_jobs(), indent=2))
+    elif args.command == "auth-gmail":
+        print(json.dumps(cmd_auth_gmail(), indent=2))
+    elif args.command == "find":
+        print(json.dumps(cmd_find(args.max_enrich), indent=2))
+    elif args.command == "run":
+        print(json.dumps(cmd_run(find=not args.no_find), indent=2))
+    elif args.command == "check-replies":
+        print(json.dumps(cmd_check_replies(), indent=2))
+
+
+def run_cli() -> None:
+    from reachai.service import WorkflowError
+
+    try:
+        main()
+    except (WorkflowError, RuntimeError) as exc:
+        print(json.dumps({"status": "error", "message": str(exc)}, indent=2))
+        sys.exit(1)
 
 
 if __name__ == "__main__":
-    main()
+    run_cli()

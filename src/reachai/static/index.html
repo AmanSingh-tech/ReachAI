@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="ReachAI local outreach dashboard">
+  <title>ReachAI — Outreach workspace</title>
+  <style>
+    :root {
+      --ink: #17231d;
+      --muted: #68756e;
+      --paper: #f4f1e9;
+      --surface: #fffdf7;
+      --surface-2: #ebe7dc;
+      --line: #d8d3c7;
+      --green: #155d3a;
+      --green-2: #dcebdd;
+      --amber: #bd6b25;
+      --red: #a63b31;
+      --shadow: 0 18px 50px rgba(29, 46, 37, .09);
+      --radius: 18px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 8% 0%, rgba(216, 226, 198, .75), transparent 30rem),
+        var(--paper);
+      color: var(--ink);
+      font: 15px/1.5 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    .shell { max-width: 1240px; margin: 0 auto; padding: 28px 24px 64px; }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 34px; }
+    .brand { display: flex; align-items: center; gap: 13px; }
+    .mark { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 13px; background: var(--green); color: white; font-weight: 800; letter-spacing: -.05em; }
+    .brand h1 { margin: 0; font-family: Georgia, serif; font-size: 24px; font-weight: 600; letter-spacing: -.02em; }
+    .brand p { margin: 1px 0 0; color: var(--muted); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
+    .header-actions { display: flex; align-items: center; gap: 10px; }
+    .status-dot { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 999px; background: rgba(255,255,255,.55); color: var(--muted); font-size: 13px; }
+    .status-dot::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #47a66e; box-shadow: 0 0 0 4px rgba(71,166,110,.12); }
+    .button { border: 0; border-radius: 11px; padding: 10px 15px; background: var(--green); color: white; font-weight: 650; transition: transform .15s, opacity .15s; }
+    .button:hover { transform: translateY(-1px); }
+    .button:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+    .button.secondary { border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
+    .button.danger { background: transparent; color: var(--red); border: 1px solid #dfbab5; }
+    .button.small { padding: 7px 10px; font-size: 13px; }
+    .eyebrow { color: var(--green); font-size: 12px; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; }
+    .hero { display: grid; grid-template-columns: 1.35fr .65fr; gap: 24px; align-items: end; margin-bottom: 24px; }
+    .hero h2 { margin: 8px 0 8px; font: 500 clamp(34px, 5vw, 58px)/1.02 Georgia, serif; letter-spacing: -.045em; max-width: 760px; }
+    .hero p { margin: 0; color: var(--muted); max-width: 680px; font-size: 16px; }
+    .notice { padding: 15px 16px; border: 1px solid #e0c9a7; background: #fff7e8; border-radius: 14px; color: #6d4a1f; }
+    .notice strong { display: block; color: #583918; margin-bottom: 3px; }
+    .metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 26px 0; }
+    .metric { padding: 17px 18px; background: rgba(255,253,247,.72); border: 1px solid var(--line); border-radius: 15px; }
+    .metric .label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .07em; }
+    .metric .value { margin-top: 4px; font: 600 30px/1.1 Georgia, serif; }
+    .metric .detail { margin-top: 5px; color: var(--muted); font-size: 12px; }
+    .grid { display: grid; grid-template-columns: minmax(320px, .82fr) minmax(440px, 1.18fr); gap: 18px; }
+    .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+    .card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding: 21px 22px 17px; border-bottom: 1px solid var(--line); }
+    .card-head h3 { margin: 2px 0 0; font: 600 22px Georgia, serif; }
+    .card-body { padding: 22px; }
+    label { display: block; margin: 0 0 7px; font-size: 12px; font-weight: 750; letter-spacing: .045em; color: #4e5c54; text-transform: uppercase; }
+    input, select, textarea { width: 100%; border: 1px solid var(--line); background: white; color: var(--ink); border-radius: 11px; padding: 11px 12px; outline: none; }
+    input:focus, select:focus, textarea:focus { border-color: #6d967e; box-shadow: 0 0 0 3px rgba(21,93,58,.1); }
+    textarea { min-height: 92px; resize: vertical; }
+    .field { margin-bottom: 16px; }
+    .split { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .check { display: flex; align-items: flex-start; gap: 10px; margin: 4px 0 18px; color: var(--muted); font-size: 13px; }
+    .check input { width: auto; margin-top: 4px; }
+    .check label { margin: 0; color: inherit; font-size: inherit; font-weight: 500; letter-spacing: 0; text-transform: none; }
+    .safe-note { display: flex; gap: 10px; margin-top: 16px; padding: 13px; border-radius: 12px; background: var(--green-2); color: #315940; font-size: 13px; }
+    .safe-note .icon { font-weight: 900; }
+    .empty { padding: 42px 24px; text-align: center; color: var(--muted); }
+    .empty strong { display: block; color: var(--ink); font: 600 18px Georgia, serif; margin-bottom: 4px; }
+    .outreach-list { display: grid; gap: 12px; }
+    .outreach { padding: 16px; border: 1px solid var(--line); border-radius: 14px; background: #fff; }
+    .outreach-top { display: flex; justify-content: space-between; gap: 12px; align-items: start; }
+    .outreach h4 { margin: 0; font-size: 15px; }
+    .outreach .sub { color: var(--muted); font-size: 13px; margin-top: 2px; }
+    .message { margin: 13px 0; padding: 13px; border-left: 3px solid #aac2b2; background: #f6f7f2; color: #34443b; white-space: pre-wrap; font-size: 13px; max-height: 170px; overflow: auto; }
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .pill { display: inline-flex; align-items: center; border-radius: 999px; padding: 5px 9px; font-size: 11px; font-weight: 800; letter-spacing: .045em; }
+    .pill.pending { background: #fff0d8; color: #875016; }
+    .pill.approved { background: #e1eee3; color: #235f3d; }
+    .pill.sent { background: #deebe9; color: #1f5b56; }
+    .pill.rejected { background: #f7e3df; color: #91382f; }
+    .data-card { margin-top: 18px; }
+    .tabs { display: flex; gap: 8px; }
+    .tab { border: 0; background: transparent; color: var(--muted); padding: 7px 9px; font-weight: 700; }
+    .tab.active { color: var(--green); background: var(--green-2); border-radius: 9px; }
+    .rows { display: grid; gap: 0; }
+    .row { display: grid; grid-template-columns: 1.2fr 1fr .75fr; gap: 14px; align-items: center; padding: 14px 0; border-bottom: 1px solid #ebe7df; }
+    .row:last-child { border-bottom: 0; }
+    .row strong { display: block; }
+    .row small { color: var(--muted); }
+    .score { color: var(--green); font-weight: 800; text-align: right; }
+    dialog { width: min(620px, calc(100% - 30px)); border: 1px solid var(--line); border-radius: 18px; padding: 0; color: var(--ink); background: var(--surface); box-shadow: 0 30px 90px rgba(18,35,26,.25); }
+    dialog::backdrop { background: rgba(21,31,26,.42); backdrop-filter: blur(3px); }
+    .dialog-head { display: flex; justify-content: space-between; align-items: center; padding: 19px 22px; border-bottom: 1px solid var(--line); }
+    .dialog-head h3 { margin: 0; font: 600 22px Georgia, serif; }
+    .dialog-body { padding: 22px; }
+    .dialog-actions { display: flex; justify-content: flex-end; gap: 9px; margin-top: 18px; }
+    .close { width: 34px; height: 34px; border: 0; border-radius: 10px; background: var(--surface-2); font-size: 20px; }
+    .toast { position: fixed; right: 24px; bottom: 24px; z-index: 10; max-width: 390px; padding: 13px 16px; border-radius: 12px; background: #1f3228; color: white; box-shadow: var(--shadow); transform: translateY(130%); opacity: 0; transition: .22s; }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.error { background: #8c352e; }
+    .loading { opacity: .55; pointer-events: none; }
+    @media (max-width: 850px) {
+      .hero, .grid { grid-template-columns: 1fr; }
+      .metrics { grid-template-columns: 1fr 1fr; }
+      .hero .notice { margin-top: 4px; }
+    }
+    @media (max-width: 560px) {
+      .shell { padding: 20px 14px 44px; }
+      header { align-items: flex-start; }
+      .status-dot { display: none; }
+      .metrics { grid-template-columns: 1fr 1fr; }
+      .split { grid-template-columns: 1fr; }
+      .row { grid-template-columns: 1fr auto; }
+      .row > :nth-child(2) { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell" id="app">
+    <header>
+      <div class="brand">
+        <div class="mark">R</div>
+        <div><h1>ReachAI</h1><p>Outreach workspace</p></div>
+      </div>
+      <div class="header-actions">
+        <span class="status-dot" id="runtime-status">Local service online</span>
+        <button class="button secondary" id="profile-button">Edit profile</button>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div>
+        <div class="eyebrow">Human-first automation</div>
+        <h2>Thoughtful outreach, always under your control.</h2>
+        <p>Match real openings to your experience, review every draft, and send only after an explicit approval.</p>
+      </div>
+      <div class="notice" id="notice" hidden></div>
+    </section>
+
+    <section class="metrics">
+      <div class="metric"><div class="label">Jobs</div><div class="value" id="metric-jobs">—</div><div class="detail">Local opportunities</div></div>
+      <div class="metric"><div class="label">Targets</div><div class="value" id="metric-targets">—</div><div class="detail">Qualified contacts</div></div>
+      <div class="metric"><div class="label">Awaiting review</div><div class="value" id="metric-pending">—</div><div class="detail">Needs your decision</div></div>
+      <div class="metric"><div class="label">Sent today</div><div class="value" id="metric-sent">—</div><div class="detail" id="limit-detail">Daily limit —</div></div>
+    </section>
+
+    <main class="grid">
+      <section class="card">
+        <div class="card-head"><div><div class="eyebrow">New draft</div><h3>Prepare outreach</h3></div></div>
+        <div class="card-body">
+          <form id="prepare-form">
+            <div class="field"><label for="job-select">Job opening</label><select id="job-select" required></select></div>
+            <div class="field"><label for="target-select">Outreach target</label><select id="target-select" required></select></div>
+            <div class="check">
+              <input id="approval-email" type="checkbox">
+              <label for="approval-email">Email the approval request to my configured address</label>
+            </div>
+            <div class="check">
+              <input id="use-llm" type="checkbox" checked>
+              <label for="use-llm">Use the configured LLM for final phrasing (quality checks still apply)</label>
+            </div>
+            <button class="button" id="prepare-button" type="submit">Create grounded draft</button>
+          </form>
+          <div class="safe-note"><span class="icon">✓</span><span id="send-mode-note">No outreach is sent during draft creation.</span></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <div><div class="eyebrow">Approval queue</div><h3>Review drafts</h3></div>
+          <button class="button secondary small" id="refresh-button">Refresh</button>
+        </div>
+        <div class="card-body" id="outreach-panel"><div class="empty"><strong>No drafts yet</strong>Create one to begin the approval flow.</div></div>
+      </section>
+    </main>
+
+    <section class="card data-card">
+      <div class="card-head">
+        <div><div class="eyebrow">Local records</div><h3>Your search data</h3></div>
+        <div class="actions"><button class="button secondary small" id="add-job-button">Add job</button><button class="button small" id="add-target-button">Add target</button></div>
+      </div>
+      <div class="card-body">
+        <div class="tabs"><button class="tab active" data-tab="jobs">Jobs</button><button class="tab" data-tab="targets">Targets</button></div>
+        <div class="rows" id="data-rows"></div>
+      </div>
+    </section>
+  </div>
+
+  <dialog id="profile-dialog">
+    <form id="profile-form">
+      <div class="dialog-head"><h3>Candidate profile</h3><button class="close" type="button" data-close="profile-dialog">×</button></div>
+      <div class="dialog-body">
+        <div class="split"><div class="field"><label for="profile-name">Name</label><input id="profile-name" required></div><div class="field"><label for="profile-email">Email</label><input id="profile-email" type="email"></div></div>
+        <div class="field"><label for="profile-resume">Resume URL</label><input id="profile-resume" type="url" required></div>
+        <div class="field"><label for="profile-skills">Skills (comma separated)</label><textarea id="profile-skills"></textarea></div>
+        <div class="field"><label for="profile-experience">Experience (one item per line)</label><textarea id="profile-experience"></textarea></div>
+        <div class="field"><label for="profile-strengths">Strengths (comma separated)</label><input id="profile-strengths"></div>
+        <div class="field"><label for="profile-roles">Target roles (comma separated)</label><input id="profile-roles"></div>
+        <div class="field"><label for="profile-locations">Target locations (comma separated)</label><input id="profile-locations"></div>
+        <div class="dialog-actions"><button class="button secondary" type="button" data-close="profile-dialog">Cancel</button><button class="button" type="submit">Save profile</button></div>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="job-dialog">
+    <form id="job-form">
+      <div class="dialog-head"><h3>Add job</h3><button class="close" type="button" data-close="job-dialog">×</button></div>
+      <div class="dialog-body">
+        <div class="split"><div class="field"><label for="job-title">Title</label><input id="job-title" required></div><div class="field"><label for="job-company">Company</label><input id="job-company" required></div></div>
+        <div class="split"><div class="field"><label for="job-location">Location</label><input id="job-location"></div><div class="field"><label for="job-url">Job URL</label><input id="job-url" type="url"></div></div>
+        <div class="field"><label for="job-description">Description / requirements</label><textarea id="job-description"></textarea></div>
+        <div class="dialog-actions"><button class="button secondary" type="button" data-close="job-dialog">Cancel</button><button class="button" type="submit">Add job</button></div>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="target-dialog">
+    <form id="target-form">
+      <div class="dialog-head"><h3>Add outreach target</h3><button class="close" type="button" data-close="target-dialog">×</button></div>
+      <div class="dialog-body">
+        <div class="split"><div class="field"><label for="target-name">Name</label><input id="target-name" required></div><div class="field"><label for="target-title">Role</label><input id="target-title" placeholder="Hiring Manager" required></div></div>
+        <div class="field"><label for="target-company">Company</label><input id="target-company" required></div>
+        <div class="split"><div class="field"><label for="target-email">Email</label><input id="target-email" type="email"></div><div class="field"><label for="target-linkedin">Profile URL</label><input id="target-linkedin" type="url"></div></div>
+        <div class="dialog-actions"><button class="button secondary" type="button" data-close="target-dialog">Cancel</button><button class="button" type="submit">Add target</button></div>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status"></div>
+
+  <script>
+    const state = { status: {}, profile: {}, jobs: [], targets: [], outreach: [], tab: 'jobs' };
+    const $ = (selector) => document.querySelector(selector);
+    const esc = (value = '') => String(value).replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+    const list = (value, separator = ',') => String(value || '').split(separator).map(x => x.trim()).filter(Boolean);
+
+    async function api(path, options = {}) {
+      const response = await fetch(path, { headers: { 'Content-Type': 'application/json' }, ...options });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const detail = data.detail || data;
+        throw new Error(detail.message || detail.detail || `Request failed (${response.status})`);
+      }
+      return data;
+    }
+
+    function toast(message, error = false) {
+      const el = $('#toast'); el.textContent = message; el.className = `toast show${error ? ' error' : ''}`;
+      clearTimeout(window.toastTimer); window.toastTimer = setTimeout(() => el.className = 'toast', 3200);
+    }
+
+    async function load() {
+      $('#app').classList.add('loading');
+      try {
+        [state.status, state.profile, state.jobs, state.targets, state.outreach] = await Promise.all([
+          api('/api/status'), api('/api/profile'), api('/api/jobs'), api('/api/targets'), api('/api/outreach')
+        ]);
+        render();
+      } catch (error) { toast(error.message, true); }
+      finally { $('#app').classList.remove('loading'); }
+    }
+
+    function render() {
+      $('#metric-jobs').textContent = state.status.jobs;
+      $('#metric-targets').textContent = state.status.targets;
+      $('#metric-pending').textContent = state.status.pending_approval;
+      $('#metric-sent').textContent = state.status.sent_today;
+      $('#limit-detail').textContent = `Daily limit ${state.status.daily_limit}`;
+      $('#approval-email').disabled = !state.status.gmail_configured;
+      $('#use-llm').disabled = !state.status.llm_configured;
+      $('#use-llm').checked = Boolean(state.status.llm_configured);
+      $('#send-mode-note').textContent = state.status.send_mode === 'dry-run'
+        ? 'Delivery is in dry-run mode. Approved messages are recorded as simulated sends.'
+        : 'Live Gmail delivery is enabled, but every message still requires approval.';
+      const warnings = state.status.warnings || [];
+      const notice = $('#notice');
+      if (warnings.length) { notice.hidden = false; notice.innerHTML = `<strong>Finish setup</strong>${warnings.map(esc).join(' ')}`; }
+      else { notice.hidden = true; }
+      renderSelects(); renderOutreach(); renderRows(); fillProfile();
+    }
+
+    function renderSelects() {
+      $('#job-select').innerHTML = state.jobs.length
+        ? state.jobs.map(j => `<option value="${esc(j.id)}">${esc(j.title)} · ${esc(j.company)} (${Math.round(j.score || 0)})</option>`).join('')
+        : '<option value="">Add a job first</option>';
+      $('#target-select').innerHTML = state.targets.length
+        ? state.targets.map(t => `<option value="${esc(t.id)}">${esc(t.name)} · ${esc(t.title)} at ${esc(t.company)}</option>`).join('')
+        : '<option value="">Add a target first</option>';
+      $('#prepare-button').disabled = !state.jobs.length || !state.targets.length;
+    }
+
+    function renderOutreach() {
+      const panel = $('#outreach-panel');
+      if (!state.outreach.length) { panel.innerHTML = '<div class="empty"><strong>No drafts yet</strong>Create one to begin the approval flow.</div>'; return; }
+      panel.innerHTML = `<div class="outreach-list">${state.outreach.map(item => {
+        const target = item.target || {}; const job = item.job || {}; const status = item.status.toLowerCase();
+        let actions = '';
+        if (item.status === 'PENDING_APPROVAL' && item.approval_token) actions = `<button class="button small" data-decision="approve" data-token="${esc(item.approval_token)}">Approve</button><button class="button danger small" data-decision="reject" data-token="${esc(item.approval_token)}">Reject</button>`;
+        if (item.status === 'APPROVED') actions = `<button class="button small" data-send="${esc(item.id)}">${state.status.send_mode === 'dry-run' ? 'Complete dry-run send' : 'Send with Gmail'}</button>`;
+        return `<article class="outreach"><div class="outreach-top"><div><h4>${esc(target.name || item.target_id)}</h4><div class="sub">${esc(job.title || item.subject)} · score ${Math.round(item.match_score || 0)}</div></div><span class="pill ${status}">${esc(item.status.replaceAll('_', ' '))}</span></div><div class="message">${esc(item.message)}</div><div class="actions">${actions}</div></article>`;
+      }).join('')}</div>`;
+    }
+
+    function renderRows() {
+      document.querySelectorAll('.tab').forEach(tab => tab.classList.toggle('active', tab.dataset.tab === state.tab));
+      const rows = $('#data-rows');
+      if (state.tab === 'jobs') {
+        rows.innerHTML = state.jobs.map(j => `<div class="row"><div><strong>${esc(j.title)}</strong><small>${esc(j.company)}</small></div><small>${esc(j.location || 'Location not specified')}</small><div class="score">${Math.round(j.score || 0)}/100</div></div>`).join('') || '<div class="empty">No jobs have been added.</div>';
+      } else {
+        rows.innerHTML = state.targets.map(t => `<div class="row"><div><strong>${esc(t.name)}</strong><small>${esc(t.title)}</small></div><small>${esc(t.company)}</small><div class="score">${esc(t.status)}</div></div>`).join('') || '<div class="empty">No targets have been added.</div>';
+      }
+    }
+
+    function fillProfile() {
+      $('#profile-name').value = state.profile.name || ''; $('#profile-email').value = state.profile.email || '';
+      $('#profile-resume').value = state.profile.resume_url || ''; $('#profile-skills').value = (state.profile.skills || []).join(', ');
+      $('#profile-experience').value = (state.profile.experience || []).join('\n'); $('#profile-strengths').value = (state.profile.strengths || []).join(', ');
+      $('#profile-roles').value = (state.profile.target_roles || []).join(', '); $('#profile-locations').value = (state.profile.target_locations || []).join(', ');
+    }
+
+    $('#prepare-form').addEventListener('submit', async event => {
+      event.preventDefault(); const button = $('#prepare-button'); button.disabled = true; button.textContent = 'Preparing…';
+      try {
+        await api('/api/outreach/prepare', { method: 'POST', body: JSON.stringify({ target_id: $('#target-select').value, job_id: $('#job-select').value, send_approval_email: $('#approval-email').checked, use_llm: $('#use-llm').checked }) });
+        toast('Draft created and added to your approval queue.'); await load();
+      } catch (error) { toast(error.message, true); }
+      finally { button.textContent = 'Create grounded draft'; button.disabled = false; }
+    });
+
+    $('#outreach-panel').addEventListener('click', async event => {
+      const decision = event.target.dataset.decision; const token = event.target.dataset.token; const sendId = event.target.dataset.send;
+      try {
+        if (decision) { await api(`/api/approvals/${encodeURIComponent(token)}/${decision}`, { method: 'POST' }); toast(`Draft ${decision}d.`); }
+        if (sendId) { await api(`/api/outreach/${encodeURIComponent(sendId)}/send`, { method: 'POST' }); toast(state.status.send_mode === 'dry-run' ? 'Dry-run delivery completed.' : 'Message sent.'); }
+        if (decision || sendId) await load();
+      } catch (error) { toast(error.message, true); }
+    });
+
+    $('#profile-form').addEventListener('submit', async event => {
+      event.preventDefault();
+      try {
+        await api('/api/profile', { method: 'PUT', body: JSON.stringify({
+          ...state.profile,
+          name: $('#profile-name').value, email: $('#profile-email').value, resume_url: $('#profile-resume').value,
+          skills: list($('#profile-skills').value), experience: list($('#profile-experience').value, '\n'), strengths: list($('#profile-strengths').value),
+          target_roles: list($('#profile-roles').value), target_locations: list($('#profile-locations').value)
+        }) });
+        $('#profile-dialog').close(); toast('Candidate profile saved.'); await load();
+      } catch (error) { toast(error.message, true); }
+    });
+
+    $('#job-form').addEventListener('submit', async event => {
+      event.preventDefault();
+      try {
+        await api('/api/jobs', { method: 'POST', body: JSON.stringify({ title: $('#job-title').value, company: $('#job-company').value, location: $('#job-location').value || null, url: $('#job-url').value || null, description: $('#job-description').value || null }) });
+        event.target.reset(); $('#job-dialog').close(); toast('Job added and scored.'); await load();
+      } catch (error) { toast(error.message, true); }
+    });
+
+    $('#target-form').addEventListener('submit', async event => {
+      event.preventDefault();
+      try {
+        await api('/api/targets', { method: 'POST', body: JSON.stringify({ name: $('#target-name').value, title: $('#target-title').value, company: $('#target-company').value, email: $('#target-email').value || null, linkedin_url: $('#target-linkedin').value || null }) });
+        event.target.reset(); $('#target-dialog').close(); toast('Target added.'); await load();
+      } catch (error) { toast(error.message, true); }
+    });
+
+    $('#profile-button').onclick = () => $('#profile-dialog').showModal();
+    $('#add-job-button').onclick = () => $('#job-dialog').showModal();
+    $('#add-target-button').onclick = () => $('#target-dialog').showModal();
+    $('#refresh-button').onclick = load;
+    document.querySelectorAll('[data-close]').forEach(button => button.onclick = () => document.getElementById(button.dataset.close).close());
+    document.querySelectorAll('.tab').forEach(tab => tab.onclick = () => { state.tab = tab.dataset.tab; renderRows(); });
+    load();
+  </script>
+</body>
+</html>
