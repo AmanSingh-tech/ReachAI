@@ -4,6 +4,17 @@ This guide explains how to use the ReachAI local-first outreach assistant.
 
 ## Quick Start
 
+### Start the web dashboard
+
+```bash
+python -m pip install -e .
+python -m reachai.cli serve
+```
+
+Then open <http://127.0.0.1:8000>. The web dashboard is the recommended end-to-end interface. API documentation is available at <http://127.0.0.1:8000/docs>.
+
+Delivery defaults to `dry-run`, so approval and send state can be tested safely. To enable real Gmail delivery, configure OAuth and explicitly set `REACHAI_SEND_MODE=gmail`.
+
 ### 1. Setup
 
 Initialize the candidate profile:

@@ -69,6 +69,53 @@ Use:
 
 The reference project follows this local-first approach and stores profile, documents, job state, Gmail state, and tracking locally.
 
+## Run the complete local application
+
+ReachAI now includes a browser dashboard backed by the canonical `src/reachai` workflow and SQLite database.
+
+```bash
+python3 -m venv .venv
+.venv/bin/pip install -e . pytest
+cp -n .env.example .env   # then set OPENROUTER_API_KEY for LLM drafts (optional)
+.venv/bin/reachai serve
+```
+
+Open <http://127.0.0.1:8000>. From the dashboard you can:
+
+1. Edit the candidate profile.
+2. Add real job openings and outreach targets.
+3. Generate a grounded, scored draft.
+4. Explicitly approve or reject the draft.
+5. Complete the delivery step and review its persisted status.
+
+The default `REACHAI_SEND_MODE=dry-run` exercises the full workflow without external delivery. Live email remains disabled until `REACHAI_SEND_MODE=gmail` is set and valid Gmail OAuth credential/token files are configured. Starting the application never sends a message.
+
+## Find people and approve outreach by email
+
+ReachAI finds people with Apollo, has Claude Code draft a message, and emails you one approval email per person. Nothing is sent until you approve it.
+
+1. **Apollo**: put an API key in `.env` as `APOLLO_API_KEY` (master key, or one with people search, people match and job postings).
+2. **Gmail**: in Google Cloud, enable the Gmail API, create an OAuth client of type *Desktop app*, save its JSON as `secrets/credentials.json`, then run `reachai auth-gmail` once.
+3. **Profile**: set your real email, resume link, experience and `target_roles` in `data/candidate.json` (or the dashboard). `outreach_titles` sets who to contact; `exclude_companies` sets who never to contact.
+4. Run:
+
+```bash
+.venv/bin/reachai run            # find people, draft, email each draft to you
+.venv/bin/reachai check-replies  # apply APPROVE/REJECT replies and send approved
+.venv/bin/reachai daemon-start   # do both automatically (discovery once a day)
+```
+
+Each approval email shows the person, their LinkedIn, the matching job posting, and the exact message. Approve with the button (needs `reachai serve` running and reachable at `REACHAI_PUBLIC_URL`) or reply with just `APPROVE` / `REJECT`. Only replies from your own address count. Approved messages go out from your Gmail, within `REACHAI_DAILY_LIMIT`. With `REACHAI_SEND_MODE=dry-run` the approval emails are real but sending is simulated; switch to `gmail` when ready.
+
+People are only stored when Apollo has a verified work email for them and their company has a live posting matching one of your target roles, so every draft refers to a real opening.
+
+Useful endpoints:
+
+- Dashboard: `GET /`
+- Health: `GET /health`
+- Interactive API docs: `GET /docs`
+- Workflow status: `GET /api/status`
+
 ---
 
 # 3. Reference Architecture
