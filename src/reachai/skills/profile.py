@@ -23,3 +23,13 @@ class ProfileSkill:
         with self.path.open("r", encoding="utf-8") as file:
             data = json.load(file)
         return CandidateProfile.model_validate(data)
+
+    def save(self, profile: CandidateProfile) -> CandidateProfile:
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        temporary_path = self.path.with_suffix(f"{self.path.suffix}.tmp")
+        temporary_path.write_text(
+            json.dumps(profile.model_dump(), indent=2, ensure_ascii=False) + "\n",
+            encoding="utf-8",
+        )
+        temporary_path.replace(self.path)
+        return profile

@@ -11,7 +11,8 @@ class CriticSkill:
 
         if "http" not in lower:
             issues.append("missing_resume_link")
-        if "company" not in str(context or {}).lower() and context and context.get("company") not in lower:
+        company = str((context or {}).get("company", "")).strip().lower()
+        if company and company not in lower:
             issues.append("not_personalized")
         if len(message) > 500:
             issues.append("too_long")

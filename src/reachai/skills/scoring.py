@@ -10,6 +10,8 @@ class ScoringSkill:
         description = str(job.get("description", "")).lower()
         skill_text = " ".join(candidate.get("skills", []) + candidate.get("strengths", [])).lower()
 
+        if any(str(role).strip().lower() in title for role in candidate.get("target_roles", []) if str(role).strip()):
+            score += 65
         if "ai engineer" in title:
             score += 30
         if "machine learning" in title or "ml engineer" in title:

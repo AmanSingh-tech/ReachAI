@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import List, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class ResearchFact(BaseModel):
@@ -16,5 +16,5 @@ class ResearchResult(BaseModel):
     role_summary: str = ""
     hiring_signal: str = ""
     relevant_fact: str = ""
-    evidence: List[ResearchFact] = []
+    evidence: List[ResearchFact] = Field(default_factory=list)
     confidence: float = 0.0
