@@ -545,6 +545,14 @@ class Database:
             ).fetchone()
         return row is not None
 
+    def list_audit_events(self, limit: int = 100) -> List[Dict[str, Any]]:
+        with self._connect() as conn:
+            rows = conn.execute(
+                "SELECT entity_type, entity_id, action, details, created_at FROM audit_events ORDER BY id DESC LIMIT ?",
+                (limit,),
+            ).fetchall()
+        return [dict(row) for row in rows]
+
     def outreach_id_for_token(self, token: str) -> str | None:
         with self._connect() as conn:
             row = conn.execute("SELECT outreach_id FROM approval_tokens WHERE token = ?", (token,)).fetchone()

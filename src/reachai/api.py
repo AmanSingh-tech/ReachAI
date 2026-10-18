@@ -164,6 +164,16 @@ def decide_outreach(token: str, action: str, request: Request) -> Any:
     return _run(lambda: service.decide(token, action))
 
 
+@app.get("/api/activity")
+def get_activity(limit: int = 100) -> list[dict[str, Any]]:
+    return service.db.list_audit_events(limit=min(max(limit, 1), 500))
+
+
+@app.post("/api/replies/check")
+def check_replies() -> dict[str, Any]:
+    return _run(lambda: {"decisions": service.process_replies(), "sent": service.send_approved()})
+
+
 @app.post("/api/find")
 def find_people() -> dict[str, Any]:
     return _run(lambda: service.run_cycle(find=True))
