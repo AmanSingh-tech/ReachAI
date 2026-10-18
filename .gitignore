@@ -11,3 +11,6 @@ logs/
 outreach/
 data/
 documents/
+credentials.json
+token.json
+secrets/
